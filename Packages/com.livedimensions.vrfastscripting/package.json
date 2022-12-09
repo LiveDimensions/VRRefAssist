@@ -1,0 +1,16 @@
+{
+  "name": "com.livedimensions.vrfastscripting",
+  "version": "0.0.1",
+  "description": "Set of custom attributes to automate time consuming references and repetitive tasks.",
+  "displayName": "VRFastScripting",
+  "author": {
+    "name": "LiveDimensions",
+    "email": "livedimensions@gmail.com",
+    "url": "https://github.com/LiveDimensions"
+  },
+  "documentationUrl": "https://github.com/LiveDimensions/VRFastScripting",
+  "license": "MIT",
+  "type": "tool",
+  "unity": "2019.4",
+  "unityRelease": "31f1"
+}
