@@ -8,6 +8,12 @@
     "email": "livedimensions@gmail.com",
     "url": "https://github.com/LiveDimensions"
   },
+  "keywords": [
+    "vrchat",
+    "vrc",
+    "automation",
+    "scripting"
+  ],
   "documentationUrl": "https://github.com/LiveDimensions/VRFastScripting",
   "license": "MIT",
   "type": "tool",
