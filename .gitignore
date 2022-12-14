@@ -6,4 +6,5 @@
 !/.README.md
 !/Packages
 /Packages/*
+/Packages/com.vrchat.core.vpm-resolver/*
 !/Packages/com.livedimensions.vrfastscripting
