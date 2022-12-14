@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using UdonSharp;
 using UnityEngine;
 using VRFastScripting.Editor.Extensions;
 
 #if UDONSHARP
+using UdonSharp;
 
 namespace VRFastScripting.Editor.Automation
 {
