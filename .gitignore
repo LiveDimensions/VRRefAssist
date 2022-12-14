@@ -2,8 +2,8 @@
 !/.git
 !/.github
 !/.gitignore
-!/.LICENCE
-!/.README.md
+!/LICENSE
+!/README.md
 !/Packages
 /Packages/*
 /Packages/com.vrchat.core.vpm-resolver/*
