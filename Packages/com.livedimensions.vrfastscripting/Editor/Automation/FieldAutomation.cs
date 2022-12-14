@@ -4,9 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using UdonSharp;
-using UnityEditor;
 using UnityEngine;
 using VRFastScripting.Editor.Extensions;
+
+#if UDONSHARP
 
 namespace VRFastScripting.Editor.Automation
 {
@@ -19,20 +20,20 @@ namespace VRFastScripting.Editor.Automation
         private static void ExecuteAllFieldAutomation()
         {
             sceneUdons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>();
-            
+
             foreach (var sceneUdon in sceneUdons)
             {
                 foreach (var fieldAutomation in FieldAutomationDict.Keys)
-                {   
+                {
                     int count = sceneUdon.SetComponentFieldsWithAttribute(fieldAutomation);
                     FieldAutomationResults[fieldAutomation] += count;
                 }
             }
-            
+
             foreach (var result in FieldAutomationResults)
             {
-                if(result.Value > 0)
-                    VRFSDebugger.Log($"Successfully set ({result.Value}) {result.Key.ToString()}s references");   
+                if (result.Value > 0)
+                    VRFSDebugger.Log($"Successfully set ({result.Value}) {result.Key.ToString()}s references");
             }
         }
 
@@ -143,16 +144,16 @@ namespace VRFastScripting.Editor.Automation
             {FieldAutomationType.Find, typeof(Find)},
             {FieldAutomationType.FindInChildren, typeof(FindInChildren)},
         };
-        
+
         private static readonly Dictionary<FieldAutomationType, int> FieldAutomationResults = new Dictionary<FieldAutomationType, int>
         {
-            {FieldAutomationType.GetComponent,                  0},
-            {FieldAutomationType.GetComponentInChildren,        0},
-            {FieldAutomationType.GetComponentInParent,          0},
-            {FieldAutomationType.GetComponentInDirectParent,    0},
-            {FieldAutomationType.FindObjectOfType,              0},
-            {FieldAutomationType.Find,                          0},
-            {FieldAutomationType.FindInChildren,                0},
+            {FieldAutomationType.GetComponent, 0},
+            {FieldAutomationType.GetComponentInChildren, 0},
+            {FieldAutomationType.GetComponentInParent, 0},
+            {FieldAutomationType.GetComponentInDirectParent, 0},
+            {FieldAutomationType.FindObjectOfType, 0},
+            {FieldAutomationType.Find, 0},
+            {FieldAutomationType.FindInChildren, 0},
         };
 
         private enum FieldAutomationType
@@ -169,3 +170,5 @@ namespace VRFastScripting.Editor.Automation
         public static bool IsSerialized(this FieldInfo field) => !(field.GetCustomAttribute<NonSerializedAttribute>() != null || field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null);
     }
 }
+
+#endif

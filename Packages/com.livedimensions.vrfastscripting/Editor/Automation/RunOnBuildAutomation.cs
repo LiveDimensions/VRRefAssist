@@ -102,6 +102,7 @@ namespace VRFastScripting.Editor.Automation
         }
     }
 
+    #if VRC_SDK_VRCSDK3
     public class VRFS_VRCBuildCallback : IVRCSDKBuildRequestedCallback
     {
         public int callbackOrder => -1;
@@ -113,4 +114,5 @@ namespace VRFastScripting.Editor.Automation
             return RunOnBuildAutomation.RunOnBuildMethods();
         }
     }
+    #endif
 }
