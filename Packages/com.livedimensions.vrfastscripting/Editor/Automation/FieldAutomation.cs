@@ -4,12 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using VRFastScripting.Editor.Extensions;
-
-#if UDONSHARP
+using VRFastScripting.Extensions;
 using UdonSharp;
 
-namespace VRFastScripting.Editor.Automation
+namespace VRFastScripting.Automation
 {
     public static class FieldAutomation
     {
@@ -40,7 +38,7 @@ namespace VRFastScripting.Editor.Automation
         private static int SetComponentFieldsWithAttribute(this UdonSharpBehaviour sceneUdon, FieldAutomationType automationType)
         {
             int count = 0;
-            foreach (var field in sceneUdon.GetType().GetFields(FieldFlags))
+            foreach (var field in GetAllFields(sceneUdon.GetType()))
             {
                 var attributeType = FieldAutomationDict[automationType];
 
@@ -98,6 +96,13 @@ namespace VRFastScripting.Editor.Automation
             }
 
             return count;
+        }
+        
+        public static IEnumerable<FieldInfo> GetAllFields(Type t)
+        {
+            if (t == null) return Enumerable.Empty<FieldInfo>();
+            
+            return t.GetFields(FieldFlags).Concat(GetAllFields(t.BaseType));
         }
 
 
@@ -170,5 +175,3 @@ namespace VRFastScripting.Editor.Automation
         public static bool IsSerialized(this FieldInfo field) => !(field.GetCustomAttribute<NonSerializedAttribute>() != null || field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null);
     }
 }
-
-#endif
