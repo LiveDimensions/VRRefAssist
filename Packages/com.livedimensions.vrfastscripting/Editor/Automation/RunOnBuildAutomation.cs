@@ -7,13 +7,14 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 
-namespace VRFastScripting.Editor.Automation
+
+namespace VRFastScripting.Automation
 {
     [InitializeOnLoad]
     public static class RunOnBuildAutomation
     {
         private static List<MethodInfo> runOnBuildMethods;
-        private const BindingFlags runOnBuildBindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+        private const BindingFlags runOnBuildBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
         private static bool refreshingOnBuildMethods;
 
         private static DateTime runOnBuildStartTime;
@@ -33,11 +34,13 @@ namespace VRFastScripting.Editor.Automation
                 .Where(x => x.GetCustomAttributes<RunOnBuildAttribute>().FirstOrDefault() != null)
                 .OrderBy(x => x.GetCustomAttribute<RunOnBuildAttribute>().executionOrder).ToList();
 
+            /*
             foreach (var onBuildMethod in runOnBuildMethods)
             {
+                VRFSDebugger.Log($"Found <b>[<color=#4dae6c>RunOnBuild</color>]</b> method: <b>{onBuildMethod.Name}</b> in {onBuildMethod.DeclaringType}");
                 if (!onBuildMethod.IsStatic)
-                    VRFSDebugger.LogError($"<b>[RunOnBuild]</b> is not compatible with Non Static methods! (<b>{onBuildMethod.Name}</b> in {onBuildMethod.DeclaringType})");
-            }
+                    VRFSDebugger.LogError($"<b>[<color=#4dae6c>RunOnBuild</color>]</b> is not compatible with Non Static methods! (<b>{onBuildMethod.Name}</b> in {onBuildMethod.DeclaringType})");
+            }*/
 
             refreshingOnBuildMethods = false;
         }
