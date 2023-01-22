@@ -18,7 +18,8 @@ namespace VRFastScripting
     public class RunOnBuildAttribute : Attribute
     {
         public readonly int executionOrder;
-
+        
+        /// <param name="executionOrder">Execution order for RunOnBuild methods, lower values execute first.</param>
         public RunOnBuildAttribute(int executionOrder = 0)
         {
             this.executionOrder = executionOrder;
