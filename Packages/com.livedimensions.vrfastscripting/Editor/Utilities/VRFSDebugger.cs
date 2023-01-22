@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace VRFastScripting.Editor
+namespace VRFastScripting
 {
     public static class VRFSDebugger
     {

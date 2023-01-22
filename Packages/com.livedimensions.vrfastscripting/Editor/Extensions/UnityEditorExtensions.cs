@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace VRFastScripting.Editor.Extensions
+namespace VRFastScripting.Extensions
 {
     public static class UnityEditorExtensions
     {

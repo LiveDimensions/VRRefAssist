@@ -5,10 +5,10 @@ using System.Reflection;
 using UdonSharp;
 using UnityEditor;
 using UnityEngine;
-using VRFastScripting.Editor.Automation;
-using VRFastScripting.Editor.Extensions;
+using VRFastScripting.Automation;
+using VRFastScripting.Extensions;
 
-namespace VRFastScripting.Editor.Singletons
+namespace VRFastScripting.Singletons
 {
     public static class SingletonAutomation
     {
