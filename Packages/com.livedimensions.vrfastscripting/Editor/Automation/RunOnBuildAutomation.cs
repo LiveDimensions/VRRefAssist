@@ -7,8 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 
-
-namespace VRFastScripting.Automation
+namespace VRFastScripting.Editor.Automation
 {
     [InitializeOnLoad]
     public static class RunOnBuildAutomation
@@ -105,7 +104,7 @@ namespace VRFastScripting.Automation
         }
     }
 
-    #if VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
     public class VRFS_VRCBuildCallback : IVRCSDKBuildRequestedCallback
     {
         public int callbackOrder => -1;
@@ -117,5 +116,5 @@ namespace VRFastScripting.Automation
             return RunOnBuildAutomation.RunOnBuildMethods();
         }
     }
-    #endif
+#endif
 }

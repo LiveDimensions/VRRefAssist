@@ -4,10 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using VRFastScripting.Extensions;
 using UdonSharp;
+using VRFastScripting.Editor.Extensions;
 
-namespace VRFastScripting.Automation
+namespace VRFastScripting.Editor.Automation
 {
     public static class FieldAutomation
     {
