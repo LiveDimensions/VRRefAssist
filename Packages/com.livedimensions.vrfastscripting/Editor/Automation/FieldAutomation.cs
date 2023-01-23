@@ -31,7 +31,7 @@ namespace VRFastScripting.Editor.Automation
             foreach (var result in FieldAutomationResults)
             {
                 if (result.Value > 0)
-                    VRFSDebugger.Log($"Successfully set ({result.Value}) {result.Key.ToString()}s references");
+                    VRFSDebugger.Log($"Successfully set ({result.Value}) {result.Key.ToString()} references");
             }
         }
 
@@ -52,7 +52,7 @@ namespace VRFastScripting.Editor.Automation
                     continue;
                 }
 
-                var components = sceneUdon.GetFromFieldAutomation(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, automationType, customAttribute);
+                object[] components = sceneUdon.GetFromFieldAutomation(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, automationType, customAttribute);
 
                 bool failToSet;
 
@@ -77,10 +77,8 @@ namespace VRFastScripting.Editor.Automation
                     var elementType = field.FieldType.GetElementType();
 
                     var actualValues = Array.CreateInstance(elementType, components.Length);
-                    for (int i = 0; i < components.Length; i++)
-                    {
-                        actualValues.SetValue(Convert.ChangeType(components[i], elementType), i);
-                    }
+                    
+                    Array.Copy(components, actualValues, components.Length);
 
                     obj = actualValues;
                 }
