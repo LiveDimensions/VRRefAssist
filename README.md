@@ -1,4 +1,4 @@
-# ⚠ This is highly WIP and the repo doesn't work ⚠
+# ⚠ This is highly WIP ⚠
 
 # VRFastScripting
- A set of custom attributes to automate time consuming references and repetitive tasks
+ A set of custom attributes to automate usually time consuming references and repetitive tasks
