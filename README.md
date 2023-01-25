@@ -1,4 +1,4 @@
 # ⚠ This is highly WIP ⚠
 
-# VRFastScripting
+# VR RefAssist
  A set of custom attributes to automate usually time consuming references and repetitive tasks
