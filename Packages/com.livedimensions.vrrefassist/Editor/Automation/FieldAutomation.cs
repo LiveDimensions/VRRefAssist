@@ -31,7 +31,7 @@ namespace VRRefAssist.Editor.Automation
             foreach (var result in FieldAutomationResults)
             {
                 if (result.Value > 0)
-                    VRFSDebugger.Log($"Successfully set ({result.Value}) {result.Key.ToString()} references");
+                    VRRADebugger.Log($"Successfully set ({result.Value}) {result.Key.ToString()} references");
             }
         }
 
@@ -67,7 +67,7 @@ namespace VRRefAssist.Editor.Automation
 
                 if (failToSet)
                 {
-                    VRFSDebugger.LogError($"Failed to set [{attributeType.Name}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+                    VRRADebugger.LogError($"Failed to set [{attributeType.Name}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
                     continue;
                 }
 

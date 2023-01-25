@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace VRRefAssist
 {
-    public static class VRFSDebugger
+    public static class VRRADebugger
     {
         public static void Log(string message, Object obj = null)
         {

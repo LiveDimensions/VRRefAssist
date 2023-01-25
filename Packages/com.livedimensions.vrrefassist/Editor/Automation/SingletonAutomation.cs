@@ -22,12 +22,12 @@ namespace VRRefAssist.Editor.Automation
 
             foreach (var repeatedSingleton in repeatedSingletons)
             {
-                VRFSDebugger.LogError($"There are multiple instances ({repeatedSingleton.Count()}) of the same singleton in the scene! (" + repeatedSingleton.Key + ")");
+                VRRADebugger.LogError($"There are multiple instances ({repeatedSingleton.Count()}) of the same singleton in the scene! (" + repeatedSingleton.Key + ")");
             }
 
             sceneSingletonsDict = sceneUdonSingletons.GroupBy(u => u.GetType()).Select(u => u.First()).ToDictionary(x => x.GetType(), x => x);
 
-            VRFSDebugger.Log($"Singleton refresh found {sceneUdonSingletons.Count} singletons in the scene");
+            VRRADebugger.Log($"Singleton refresh found {sceneUdonSingletons.Count} singletons in the scene");
         }
 
         [MenuItem("VRRefAssist/Tools/Set Singleton References")]
@@ -52,7 +52,7 @@ namespace VRRefAssist.Editor.Automation
                 count += udon.SetSingletonReferences();
             }
 
-            VRFSDebugger.Log($"Successfully set ({count}) singleton references");
+            VRRADebugger.Log($"Successfully set ({count}) singleton references");
 
             return count;
         }
@@ -68,7 +68,7 @@ namespace VRRefAssist.Editor.Automation
 
                 if (!sceneSingletonsDict.ContainsKey(field.FieldType))
                 {
-                    VRFSDebugger.LogError($"Failed to set singleton \"{field.FieldType.Name}\" in {udon.GetType().Name} ({udon.name}), because the singleton was not found in the scene!", udon.gameObject);
+                    VRRADebugger.LogError($"Failed to set singleton \"{field.FieldType.Name}\" in {udon.GetType().Name} ({udon.name}), because the singleton was not found in the scene!", udon.gameObject);
                     continue;
                 }
 

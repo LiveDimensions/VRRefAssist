@@ -67,14 +67,14 @@ namespace VRRefAssist.Editor.Automation
             //This should only happen if you request a build within less than a second after recompiling
             if (refreshingOnBuildMethods)
             {
-                VRFSDebugger.LogError("Still refreshing OnBuild Methods!");
+                VRRADebugger.LogError("Still refreshing OnBuild Methods!");
                 return false;
             }
 
             if (!runOnBuildMethods.Any()) return true;
 
             runOnBuildStartTime = DateTime.Now;
-            VRFSDebugger.Log($"Running {runOnBuildMethods.Count()} OnBuild Methods...");
+            VRRADebugger.Log($"Running {runOnBuildMethods.Count()} OnBuild Methods...");
 
             int count = 1;
             int total = runOnBuildMethods.Count();
@@ -95,7 +95,7 @@ namespace VRRefAssist.Editor.Automation
                 }
                 catch (Exception e)
                 {
-                    VRFSDebugger.LogError($"Error running OnBuild Method <b>{method.Name}</b> in {method.DeclaringType}:\n{e}");
+                    VRRADebugger.LogError($"Error running OnBuild Method <b>{method.Name}</b> in {method.DeclaringType}:\n{e}");
                     Debug.LogException(e);
 
                     bool result = EditorUtility.DisplayDialog("Running OnBuild Methods...",
@@ -103,13 +103,13 @@ namespace VRRefAssist.Editor.Automation
                         "Continue", "Abort");
 
                     if (result) continue;
-                    VRFSDebugger.Log($"Ran {count} OnBuild Methods in {(DateTime.Now - runOnBuildStartTime).TotalSeconds} seconds. Before it was cancelled");
+                    VRRADebugger.Log($"Ran {count} OnBuild Methods in {(DateTime.Now - runOnBuildStartTime).TotalSeconds} seconds. Before it was cancelled");
                     EditorUtility.ClearProgressBar();
                     return false;
                 }
             }
 
-            VRFSDebugger.Log($"Finished running {runOnBuildMethods.Count()} OnBuild Methods in {(DateTime.Now - runOnBuildStartTime).TotalSeconds:F} seconds.");
+            VRRADebugger.Log($"Finished running {runOnBuildMethods.Count()} OnBuild Methods in {(DateTime.Now - runOnBuildStartTime).TotalSeconds:F} seconds.");
             EditorUtility.ClearProgressBar();
             return true;
         }
