@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,6 +26,12 @@ namespace VRRefAssist.Editor.Extensions
         
         public static T[] FindObjectsOfTypeIncludeDisabled<T>() where T : Object
         {
+            //If T is a GameObject, get all Transforms and cast them to GameObjects
+            if (typeof(T) == typeof(GameObject))
+            {
+                return FindObjectsOfTypeIncludeDisabled<Transform>().Select(t => t.gameObject).Cast<T>().ToArray();
+            }
+            
             GameObject[] rootGos = SceneManager.GetActiveScene().GetRootGameObjects();
 
             List<T> objs = new List<T>();
@@ -40,6 +47,7 @@ namespace VRRefAssist.Editor.Extensions
         public static Component[] FindObjectsOfTypeIncludeDisabled(Type type)
         {
             if (type == null) return Array.Empty<Component>();
+
             GameObject[] rootGos = SceneManager.GetActiveScene().GetRootGameObjects();
 
             List<Component> objs = new List<Component>();
@@ -54,6 +62,12 @@ namespace VRRefAssist.Editor.Extensions
 
         public static T FindObjectOfTypeIncludeDisabled<T>() where T : Object
         {
+            //If T is a GameObject, get all Transforms and cast them to GameObjects
+            if (typeof(T) == typeof(GameObject))
+            {
+                return FindObjectOfTypeIncludeDisabled<Transform>().gameObject as T;
+            }
+            
             GameObject[] rootGos = SceneManager.GetActiveScene().GetRootGameObjects();
 
             foreach (GameObject root in rootGos)
