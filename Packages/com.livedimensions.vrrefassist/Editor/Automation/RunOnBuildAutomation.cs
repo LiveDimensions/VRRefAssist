@@ -23,9 +23,7 @@ namespace VRRefAssist.Editor.Automation
             refreshingOnBuildMethods = true;
 
             new Thread(SearchAssemblyForOnBuildMethods).Start();
-            
-            return;
-            
+
             //TODO: Add a way for the user to toggle this on and off
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
         }
