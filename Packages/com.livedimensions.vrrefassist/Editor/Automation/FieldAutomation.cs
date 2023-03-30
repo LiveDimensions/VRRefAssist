@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UdonSharp;
+using UnityEditor;
 using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
@@ -14,9 +15,22 @@ namespace VRRefAssist.Editor.Automation
         private const BindingFlags FieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static UdonSharpBehaviour[] sceneUdons;
 
-        [RunOnBuild(-1)]
-        private static void ExecuteAllFieldAutomation()
+        static FieldAutomation()
         {
+            EditorApplication.playModeStateChanged += OnPlayModeChanged;
+        }
+        
+        private static void OnPlayModeChanged(PlayModeStateChange state)
+        {
+            if (state != PlayModeStateChange.ExitingEditMode) return;
+            
+            ExecuteAllFieldAutomation();
+        }
+        
+        public static void ExecuteAllFieldAutomation()
+        {
+            if(!VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode) return;
+            
             sceneUdons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>();
 
             foreach (var sceneUdon in sceneUdons)
