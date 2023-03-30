@@ -24,8 +24,8 @@ namespace VRRefAssist.Editor.Automation
 
             new Thread(SearchAssemblyForOnBuildMethods).Start();
 
-            //TODO: Add a way for the user to toggle this on and off
-            EditorApplication.playModeStateChanged += OnPlayModeChanged;
+            if(VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode)
+                EditorApplication.playModeStateChanged += OnPlayModeChanged;
         }
         
         private static void OnPlayModeChanged(PlayModeStateChange state)
@@ -54,7 +54,7 @@ namespace VRRefAssist.Editor.Automation
         }
 
 
-        [MenuItem("VRRefAssist/Tools/Run OnBuild Methods")]
+        [MenuItem("VRRefAssist/Tools/Run OnBuild Methods", priority = 100)]
         private static void ManuallyRunOnBuildMethods()
         {
             RunOnBuildMethods();
@@ -114,7 +114,7 @@ namespace VRRefAssist.Editor.Automation
     }
 
 #if VRC_SDK_VRCSDK3
-    public class VRFS_VRCBuildCallback : IVRCSDKBuildRequestedCallback
+    public class VRRA_VRCBuildCallback : IVRCSDKBuildRequestedCallback
     {
         public int callbackOrder => -1;
 
