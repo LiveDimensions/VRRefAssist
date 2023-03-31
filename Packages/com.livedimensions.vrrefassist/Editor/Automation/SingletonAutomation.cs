@@ -60,7 +60,7 @@ namespace VRRefAssist.Editor.Automation
         private static int SetSingletonReferences(this UdonSharpBehaviour udon)
         {
             int count = 0;
-            FieldInfo[] fields = udon.GetType().GetFields(FieldFlags);
+            FieldInfo[] fields = FieldAutomation.GetAllFields(udon.GetType()).ToArray();
             foreach (FieldInfo field in fields)
             {
                 if (field.FieldType.GetCustomAttribute<Singleton>() == null) continue;
