@@ -23,15 +23,6 @@ namespace VRRefAssist.Editor.Automation
             refreshingOnBuildMethods = true;
 
             new Thread(SearchAssemblyForOnBuildMethods).Start();
-
-            if(VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode)
-                EditorApplication.playModeStateChanged += OnPlayModeChanged;
-        }
-        
-        private static void OnPlayModeChanged(PlayModeStateChange state)
-        {
-            if (state != PlayModeStateChange.ExitingEditMode) return;
-            RunOnBuildMethods();
         }
 
         private static void SearchAssemblyForOnBuildMethods()

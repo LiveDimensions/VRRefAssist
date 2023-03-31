@@ -15,23 +15,14 @@ namespace VRRefAssist.Editor.Automation
         private const BindingFlags FieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static UdonSharpBehaviour[] sceneUdons;
 
-        static FieldAutomation()
-        {
-            EditorApplication.playModeStateChanged += OnPlayModeChanged;
-        }
-        
-        private static void OnPlayModeChanged(PlayModeStateChange state)
-        {
-            if (state != PlayModeStateChange.ExitingEditMode) return;
-            
-            ExecuteAllFieldAutomation();
-        }
-        
+        private static bool showPopupWhenFieldAutomationFailed;
+
+        [MenuItem("VRRefAssist/Execute All Field Automation")]
         public static void ExecuteAllFieldAutomation()
         {
-            if(!VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode) return;
-            
             sceneUdons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>();
+
+            showPopupWhenFieldAutomationFailed = VRRefAssistSettings.GetOrCreateSettings().showPopupWarnsForFailedFieldAutomation;
 
             foreach (var sceneUdon in sceneUdons)
             {
@@ -82,6 +73,18 @@ namespace VRRefAssist.Editor.Automation
                 if (failToSet)
                 {
                     VRRADebugger.LogError($"Failed to set [{attributeType.Name}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+
+                    if (showPopupWhenFieldAutomationFailed)
+                    {
+                        bool result = EditorUtility.DisplayDialog("Field Automation...",
+                            $"Failed to set [{attributeType.Name}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}",
+                            "Continue", "Abort");
+
+                        if (result) continue;
+                        
+                        throw new Exception("Field Automation Aborted");
+                    }
+                    
                     continue;
                 }
 
