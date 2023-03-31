@@ -15,7 +15,8 @@ namespace VRRefAssist.Editor.Automation
         }
     }
 
-    internal static class BuildOrPlayModeCallback
+    [InitializeOnLoad]
+    public static class BuildOrPlayModeCallback
     {
         static BuildOrPlayModeCallback()
         {
@@ -35,10 +36,20 @@ namespace VRRefAssist.Editor.Automation
             {
                 FieldAutomation.ExecuteAllFieldAutomation();
 
-                return true;
+                return RunOnBuildAutomation.RunOnBuildMethods();;
             }
 
-            return true;
+            if (VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode)
+            {
+                FieldAutomation.ExecuteAllFieldAutomation();
+            }
+            
+            if (VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode)
+            {
+                RunOnBuildAutomation.RunOnBuildMethods();
+            }
+            
+            return true; //There is no way of cancelling entering play mode
         }
     }
 }
