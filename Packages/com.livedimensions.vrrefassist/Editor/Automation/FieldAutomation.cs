@@ -17,7 +17,7 @@ namespace VRRefAssist.Editor.Automation
 
         private static bool showPopupWhenFieldAutomationFailed;
 
-        [MenuItem("VRRefAssist/Execute All Field Automation")]
+        [MenuItem("VRRefAssist/Tools/Execute All Field Automation")]
         public static void ExecuteAllFieldAutomation()
         {
             sceneUdons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>();
