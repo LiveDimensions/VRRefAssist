@@ -50,10 +50,10 @@ namespace VRRefAssist
         
         private class Styles
         {
-            public static readonly GUIContent _executeRunOnBuildWhenEnteringPlayModelabel = new GUIContent("Execute RunOnBuild Methods when entering Play Mode", "If enabled, RunOnBuild methods will be executed when entering Play Mode.");
-            public static readonly GUIContent _runFieldAutomationWhenEnteringPlayModelabel = new GUIContent("Run Field Automation when entering Play Mode", "If enabled, Field Automation will be executed when entering Play Mode.");
+            public static readonly GUIContent _executeRunOnBuildWhenEnteringPlayModeLabel = new GUIContent("Execute RunOnBuild Methods when entering Play Mode", "If enabled, RunOnBuild methods will be executed when entering Play Mode.");
+            public static readonly GUIContent _runFieldAutomationWhenEnteringPlayModeLabel = new GUIContent("Run Field Automation when entering Play Mode", "If enabled, Field Automation will be executed when entering Play Mode.");
             
-            public static readonly GUIContent _showPopupWarnsForFailedFieldAutomationlabel = new GUIContent("Show Popup Warns for Failed Field Automation", "If enabled, a popup will be shown when Field Automation fails asking if you want to abort a build.\n This can be annoying if you have many fields and don't necessarily care if some reference is missing");
+            public static readonly GUIContent _showPopupWarnsForFailedFieldAutomationLabel = new GUIContent("Show Popup Warns for Failed Field Automation", "If enabled, a popup will be shown when Field Automation fails asking if you want to abort a build.\nThis can be annoying if you have many fields and don't necessarily care if some reference is missing.");
         }
 
         [MenuItem("VRRefAssist/Settings", priority = 200)]
@@ -94,14 +94,14 @@ namespace VRRefAssist
                 using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                 {
                     EditorGUILayout.LabelField("Entering Play Mode", EditorStyles.boldLabel);
-                    executeRunOnBuildMethodsWhenEnteringPlayModeProp.boolValue = EditorGUILayout.ToggleLeft(Styles._executeRunOnBuildWhenEnteringPlayModelabel, executeRunOnBuildMethodsWhenEnteringPlayModeProp.boolValue);
-                    executeFieldAutomationWhenEnteringPlayModeProp.boolValue = EditorGUILayout.ToggleLeft(Styles._runFieldAutomationWhenEnteringPlayModelabel, executeFieldAutomationWhenEnteringPlayModeProp.boolValue);
+                    executeRunOnBuildMethodsWhenEnteringPlayModeProp.boolValue = EditorGUILayout.ToggleLeft(Styles._executeRunOnBuildWhenEnteringPlayModeLabel, executeRunOnBuildMethodsWhenEnteringPlayModeProp.boolValue);
+                    executeFieldAutomationWhenEnteringPlayModeProp.boolValue = EditorGUILayout.ToggleLeft(Styles._runFieldAutomationWhenEnteringPlayModeLabel, executeFieldAutomationWhenEnteringPlayModeProp.boolValue);
                 }
                 
                 using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                 {
                     EditorGUILayout.LabelField("Aborting Builds", EditorStyles.boldLabel);
-                    showPopupWarnsForFailedFieldAutomationProp.boolValue = EditorGUILayout.ToggleLeft(Styles._showPopupWarnsForFailedFieldAutomationlabel, showPopupWarnsForFailedFieldAutomationProp.boolValue);
+                    showPopupWarnsForFailedFieldAutomationProp.boolValue = EditorGUILayout.ToggleLeft(Styles._showPopupWarnsForFailedFieldAutomationLabel, showPopupWarnsForFailedFieldAutomationProp.boolValue);
                 }
                 
 
