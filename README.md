@@ -1,16 +1,28 @@
 # VR RefAssist
 A set of custom attributes to automate usually time consuming references and repetitive tasks.
 
-<img src="https://user-images.githubusercontent.com/26588846/229402515-618ca257-e24e-44f3-a114-973828bca0bc.png" width="600">
+<img src="https://user-images.githubusercontent.com/26588846/229404067-6b437274-e2f3-48fb-9959-5d53c817715f.png" width="600">
+
+## Features
+- Auto-set Singleton references
+- Auto-set usually tedious references on UdonSharpBehaviours
+- Run code any time a build is requested
 
 ## How to install
 In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: 
 
 `https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist`
 
+Or download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
+
+
 Requirements:
 - UdonSharp
 - Git (to install through Package Manager)
+
+## Note
+Some code is still WIP, but most of the desired functionality is already working.
+One big note would be that at this moment there is no 'customization' options for which automations are run **per scene** this means that your console might get spammed a little bit if you change scenes and don't have the same RunOnBuild scene setup. Also, by default all field and method automations will execute when building but also when entering play mode, if you wish to change this go to `VR RefAssist > Settings`
 
 ## Singleton References
 `[Singleton]`
@@ -60,6 +72,7 @@ public class BuildDate : UdonSharpBehaviour
 
 ## Field Automation
 The following **field** attributes implement different functionality to automatically set any references on **serialized** fields, this means that public or private fields with `[SerializeField]` will work.
+All fields have an optional bool parameter `dontOverride` which means that if a field already has a value, it will not attempt to set it again, useful if you want to override a specific field.
 
 **NOTE:** Even though the names of the methods are not plural, they all support array references and will populate accordingly.
 
