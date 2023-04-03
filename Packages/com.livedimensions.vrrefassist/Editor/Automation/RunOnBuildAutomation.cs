@@ -45,7 +45,7 @@ namespace VRRefAssist.Editor.Automation
         }
 
 
-        [MenuItem("VRRefAssist/Tools/Run OnBuild Methods", priority = 100)]
+        [MenuItem("VR RefAssist/Tools/Run OnBuild Methods", priority = 200)]
         private static void ManuallyRunOnBuildMethods()
         {
             RunOnBuildMethods();
@@ -105,7 +105,7 @@ namespace VRRefAssist.Editor.Automation
     }
 
 #if VRC_SDK_VRCSDK3
-    public class VRRA_VRCBuildCallback : IVRCSDKBuildRequestedCallback
+    public class VRRefAssist_VRCBuildCallback : IVRCSDKBuildRequestedCallback
     {
         public int callbackOrder => -1;
 

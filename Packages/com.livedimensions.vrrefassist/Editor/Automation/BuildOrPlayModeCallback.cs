@@ -51,5 +51,11 @@ namespace VRRefAssist.Editor.Automation
             
             return true; //There is no way of cancelling entering play mode
         }
+
+        [MenuItem("VR RefAssist/Tools/Execute All Automation", priority = 100)]
+        private static void ManuallyExecuteAllAutomation()
+        {
+            ExecuteAutomation(true);
+        }
     }
 }

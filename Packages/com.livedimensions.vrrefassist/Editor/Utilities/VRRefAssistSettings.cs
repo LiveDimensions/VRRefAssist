@@ -11,7 +11,7 @@ namespace VRRefAssist
 {
     internal class VRRefAssistSettings : ScriptableObject
     {
-        private static string SettingsPath => "Assets/VRRefAssist/Settings/VRRefAssistSettings.asset";
+        private static string SettingsPath => "Assets/VR RefAssist/Settings/VR RefAssist Settings.asset";
         
         public bool executeRunOnBuildMethodsWhenEnteringPlayMode = true;
         public bool executeFieldAutomationWhenEnteringPlayMode = true;
@@ -56,7 +56,7 @@ namespace VRRefAssist
             public static readonly GUIContent _showPopupWarnsForFailedFieldAutomationLabel = new GUIContent("Show Popup Warns for Failed Field Automation", "If enabled, a popup will be shown when Field Automation fails asking if you want to abort a build.\nThis can be annoying if you have many fields and don't necessarily care if some reference is missing.");
         }
 
-        [MenuItem("VRRefAssist/Settings", priority = 200)]
+        [MenuItem("VR RefAssist/Settings", priority = 200)]
         public static void OpenSettings()
         {
             SettingsService.OpenProjectSettings("Project/VR RefAssist");

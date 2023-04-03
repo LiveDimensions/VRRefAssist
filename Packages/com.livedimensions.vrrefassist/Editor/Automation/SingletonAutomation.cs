@@ -30,7 +30,7 @@ namespace VRRefAssist.Editor.Automation
             VRRADebugger.Log($"Singleton refresh found {sceneUdonSingletons.Count} singletons in the scene");
         }
 
-        [MenuItem("VRRefAssist/Tools/Set Singleton References", priority = 101)]
+        [MenuItem("VR RefAssist/Tools/Set Singleton References", priority = 201)]
         private static void ManuallySetAllSingletonReferences()
         {
             int count = SetAllSingletonReferences();
