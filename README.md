@@ -5,6 +5,7 @@ A set of custom attributes to automate usually time consuming references and rep
 
 ## How to install
 In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: 
+
 `https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist`
 
 Requirements:
