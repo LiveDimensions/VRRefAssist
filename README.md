@@ -8,6 +8,8 @@ In your Unity project, go to `Window > Package Manager` then click the top left 
 
 `https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist`
 
+Or download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
+
 
 Requirements:
 - UdonSharp
