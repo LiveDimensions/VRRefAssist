@@ -1,6 +1,5 @@
 # VR RefAssist
 A set of custom attributes to automate usually time consuming references and repetitive tasks.
-By default, all field and method automations will execute when building but also when entering play mode, if you wish to change this go to `VR RefAssist > Settings`
 
 <img src="https://user-images.githubusercontent.com/26588846/229404067-6b437274-e2f3-48fb-9959-5d53c817715f.png" width="600">
 
@@ -18,7 +17,7 @@ Requirements:
 
 ## Note
 Some code is still WIP, but most of the desired functionality is already working.
-One big note would be that at this moment there is no 'customization' options for which automations are run **per scene** this means that your console might get spammed a little bit if you change scenes and don't have the same RunOnBuild scene setup.
+One big note would be that at this moment there is no 'customization' options for which automations are run **per scene** this means that your console might get spammed a little bit if you change scenes and don't have the same RunOnBuild scene setup. Also, by default all field and method automations will execute when building but also when entering play mode, if you wish to change this go to `VR RefAssist > Settings`
 
 ## Singleton References
 `[Singleton]`
