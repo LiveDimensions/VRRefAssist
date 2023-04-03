@@ -72,6 +72,7 @@ public class BuildDate : UdonSharpBehaviour
 
 ## Field Automation
 The following **field** attributes implement different functionality to automatically set any references on **serialized** fields, this means that public or private fields with `[SerializeField]` will work.
+All fields have an optional bool parameter `dontOverride` which means that if a field already has a value, it will not attempt to set it again, useful if you want to override a specific field.
 
 **NOTE:** Even though the names of the methods are not plural, they all support array references and will populate accordingly.
 
