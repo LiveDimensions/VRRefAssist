@@ -3,6 +3,11 @@ A set of custom attributes to automate usually time consuming references and rep
 
 <img src="https://user-images.githubusercontent.com/26588846/229404067-6b437274-e2f3-48fb-9959-5d53c817715f.png" width="600">
 
+## Features
+- Auto-set Singleton references
+- Auto-set usually tedious references on UdonSharpBehaviours
+- Run code any time a build is requested
+
 ## How to install
 In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: 
 
