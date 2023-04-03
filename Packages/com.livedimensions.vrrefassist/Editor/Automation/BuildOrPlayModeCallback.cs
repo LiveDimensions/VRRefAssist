@@ -35,6 +35,7 @@ namespace VRRefAssist.Editor.Automation
             if (buildRequested)
             {
                 FieldAutomation.ExecuteAllFieldAutomation();
+                SingletonAutomation.SetAllSingletonReferences();
 
                 return RunOnBuildAutomation.RunOnBuildMethods();;
             }
@@ -42,6 +43,7 @@ namespace VRRefAssist.Editor.Automation
             if (VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode)
             {
                 FieldAutomation.ExecuteAllFieldAutomation();
+                SingletonAutomation.SetAllSingletonReferences();
             }
             
             if (VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode)

@@ -37,9 +37,8 @@ namespace VRRefAssist.Editor.Automation
 
             if (count > 0) SceneView.lastActiveSceneView.ShowNotification(new GUIContent($"Successfully set ({count}) singleton references"));
         }
-
-        [RunOnBuild(-1)]
-        private static int SetAllSingletonReferences()
+        
+        public static int SetAllSingletonReferences()
         {
             RefreshSingletonsInScene();
 
