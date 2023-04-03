@@ -62,9 +62,13 @@ namespace VRRefAssist
     /// </summary>
     public class FindObjectOfType : AutosetAttribute
     {
+        public readonly bool includeDisabled;
+
+        /// <param name="includeDisabled">Include components in disabled GameObjects?</param>
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public FindObjectOfType(bool dontOverride = false) : base(dontOverride)
+        public FindObjectOfType(bool includeDisabled = true, bool dontOverride = false) : base(dontOverride)
         {
+            this.includeDisabled = includeDisabled;
         }
     }
 

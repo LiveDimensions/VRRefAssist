@@ -17,7 +17,7 @@ namespace VRRefAssist.Editor.Automation
 
         private static bool showPopupWhenFieldAutomationFailed;
 
-        [MenuItem("VRRefAssist/Tools/Execute All Field Automation")]
+        [MenuItem("VR RefAssist/Tools/Execute Field Automation", priority = 202)]
         public static void ExecuteAllFieldAutomation()
         {
             sceneUdons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>();
@@ -136,7 +136,7 @@ namespace VRRefAssist.Editor.Automation
                 case FieldAutomationType.GetComponentInDirectParent:
                     return component.transform.parent == null ? Array.Empty<Component>() : component.transform.parent.GetComponents(type);
                 case FieldAutomationType.FindObjectOfType:
-                    return UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(type);
+                    return ((FindObjectOfType) attribute).includeDisabled ? UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(type) : UnityEngine.Object.FindObjectsOfType(type);
                 case FieldAutomationType.Find:
                     GameObject findGo = GameObject.Find(((Find) attribute).searchName);
 
