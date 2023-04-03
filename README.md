@@ -3,6 +3,13 @@ A set of custom attributes to automate usually time consuming references and rep
 
 <img src="https://user-images.githubusercontent.com/26588846/229402515-618ca257-e24e-44f3-a114-973828bca0bc.png" width="600">
 
+## How to install
+In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: `https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist`
+
+Requirements:
+- UdonSharp
+- Git (to install through Package Manager)
+
 ## Singleton References
 `[Singleton]`
 
