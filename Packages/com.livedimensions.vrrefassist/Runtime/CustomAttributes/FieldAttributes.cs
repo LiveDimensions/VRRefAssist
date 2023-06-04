@@ -58,7 +58,7 @@ namespace VRRefAssist
     }
 
     /// <summary>
-    /// This will run FindObjectOfType(type) and set the field to the result.
+    /// This will run FindObjectsOfType(type) and set the field to the result, if the field is not an array it will use the first value.
     /// </summary>
     public class FindObjectOfType : AutosetAttribute
     {
@@ -70,6 +70,13 @@ namespace VRRefAssist
         {
             this.includeDisabled = includeDisabled;
         }
+    }
+
+    /// <summary>
+    /// Exactly the same as FindObjectOfType, as it already works with array fields.
+    /// </summary>
+    public class FindObjectsOfType : FindObjectOfType
+    {
     }
 
     /// <summary>
