@@ -11,6 +11,26 @@ namespace VRRefAssist.Editor.Automation
 {
     public static class SingletonAutomation
     {
+        private static bool cachedSingletons;
+        private static Type[] cachedSingletonTypes;
+        
+        /// <summary>
+        /// Returns all singletons found in assemblies
+        /// </summary>
+        public static Type[] Singletons
+        {
+            get
+            {
+                if (!cachedSingletons)
+                {
+                    cachedSingletonTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(Singleton)))).ToArray();
+                    cachedSingletons = true;
+                }
+
+                return cachedSingletonTypes;
+            }
+        }
+        
         private static Dictionary<Type, UdonSharpBehaviour> sceneSingletonsDict = new Dictionary<Type, UdonSharpBehaviour>();
         private const BindingFlags FieldFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
