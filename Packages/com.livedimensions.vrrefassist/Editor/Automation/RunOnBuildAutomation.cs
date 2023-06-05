@@ -103,18 +103,4 @@ namespace VRRefAssist.Editor.Automation
             return true;
         }
     }
-
-#if VRC_SDK_VRCSDK3
-    public class VRRefAssist_VRCBuildCallback : IVRCSDKBuildRequestedCallback
-    {
-        public int callbackOrder => -1;
-
-        public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
-        {
-            if (requestedBuildType == VRCSDKRequestedBuildType.Avatar) return true;
-
-            return RunOnBuildAutomation.RunOnBuildMethods();
-        }
-    }
-#endif
 }
