@@ -34,23 +34,25 @@ namespace VRRefAssist.Editor.Automation
         {
             if (buildRequested)
             {
+                bool runOnBuildSuccess = RunOnBuildAutomation.RunOnBuildMethods();
+                
                 FieldAutomation.ExecuteAllFieldAutomation();
                 SingletonAutomation.SetAllSingletonReferences();
 
-                return RunOnBuildAutomation.RunOnBuildMethods();;
+                return runOnBuildSuccess;
             }
 
-            if (VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode)
-            {
-                FieldAutomation.ExecuteAllFieldAutomation();
-                SingletonAutomation.SetAllSingletonReferences();
-            }
-            
             if (VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode)
             {
                 RunOnBuildAutomation.RunOnBuildMethods();
             }
             
+            if (VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode)
+            {
+                FieldAutomation.ExecuteAllFieldAutomation();
+                SingletonAutomation.SetAllSingletonReferences();
+            }
+
             return true; //There is no way of cancelling entering play mode
         }
 
