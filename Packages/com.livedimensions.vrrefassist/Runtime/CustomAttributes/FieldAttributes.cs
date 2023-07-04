@@ -1,7 +1,14 @@
 using System;
+using System.Collections.Generic;
+using UdonSharp;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace VRRefAssist
 {
+    /// <summary>
+    /// You can create your own AutosetAttribute by inheriting this class and overriding GetObjectsLogic to return the objects you want to set the field to.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public abstract class AutosetAttribute : Attribute
     {
@@ -11,6 +18,7 @@ namespace VRRefAssist
         {
             this.dontOverride = dontOverride;
         }
+        public abstract object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type);
     }
     
     /// <summary>
@@ -22,8 +30,15 @@ namespace VRRefAssist
         public GetComponent(bool dontOverride = false) : base(dontOverride)
         {
         }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            return uSharpBehaviour.GetComponents(type);
+        }
     }
-    
+
+    public class GetComponents : GetComponent { }
+
     /// <summary>
     /// This will run GetComponentInChildren(type) on the object this is attached to and set the field to the result.
     /// </summary>
@@ -33,7 +48,14 @@ namespace VRRefAssist
         public GetComponentInChildren(bool dontOverride = false) : base(dontOverride)
         {
         }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            return uSharpBehaviour.GetComponentsInChildren(type, true);
+        }
     }
+    
+    public class GetComponentsInChildren : GetComponentInChildren { }
 
     /// <summary>
     /// This will run GetComponentInParent(type) on the object this is attached to and set the field to the result.
@@ -44,7 +66,14 @@ namespace VRRefAssist
         public GetComponentInParent(bool dontOverride = false) : base(dontOverride)
         {
         }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            return uSharpBehaviour.GetComponentsInParent(type, true);
+        }
     }
+    
+    public class GetComponentsInParent : GetComponentInParent { }
 
     /// <summary>
     /// This is will run transform.parent.GetComponent(type) on the object this is attached to and set the field to the result.
@@ -55,7 +84,14 @@ namespace VRRefAssist
         public GetComponentInDirectParent(bool dontOverride = false) : base(dontOverride)
         {
         }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            return uSharpBehaviour.transform.parent == null ? Array.Empty<Component>() : uSharpBehaviour.transform.parent.GetComponents(type);
+        }
     }
+    
+    public class GetComponentsInDirectParent : GetComponentInDirectParent { }
 
     /// <summary>
     /// This will run FindObjectsOfType(type) and set the field to the result, if the field is not an array it will use the first value.
@@ -70,14 +106,33 @@ namespace VRRefAssist
         {
             this.includeDisabled = includeDisabled;
         }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            return includeDisabled ? FindObjectsOfTypeIncludeDisabled(type) : UnityEngine.Object.FindObjectsOfType(type);        
+        }
+        
+        private static Component[] FindObjectsOfTypeIncludeDisabled(Type type)
+        {
+            if (type == null) return Array.Empty<Component>();
+
+            GameObject[] rootGos = SceneManager.GetActiveScene().GetRootGameObjects();
+
+            List<Component> objs = new List<Component>();
+
+            foreach (GameObject root in rootGos)
+            {
+                objs.AddRange(root.GetComponentsInChildren(type, true));
+            }
+
+            return objs.ToArray();
+        }
     }
 
     /// <summary>
     /// Exactly the same as FindObjectOfType, as it already works with array fields.
     /// </summary>
-    public class FindObjectsOfType : FindObjectOfType
-    {
-    }
+    public class FindObjectsOfType : FindObjectOfType { }
 
     /// <summary>
     /// This will run Find(searchName) and set the field to the result, it also works for type of GameObject.
@@ -91,6 +146,15 @@ namespace VRRefAssist
         public Find(string searchName, bool dontOverride = false) : base(dontOverride)
         {
             this.searchName = searchName;
+        }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            GameObject findGo = GameObject.Find(searchName);
+
+            if (type == typeof(GameObject)) return new object[] {findGo};
+
+            return findGo == null ? Array.Empty<Component>() : findGo.GetComponents(type);
         }
     }
 
@@ -106,6 +170,15 @@ namespace VRRefAssist
         public FindInChildren(string searchName, bool dontOverride = false) : base(dontOverride)
         {
             this.searchName = searchName;
+        }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        {
+            GameObject findInChildrenGo = uSharpBehaviour.transform.Find(searchName).gameObject;
+
+            if (type == typeof(GameObject)) return new object[] {findInChildrenGo};
+
+            return findInChildrenGo == null ? Array.Empty<Component>() : findInChildrenGo.GetComponents(type);
         }
     }
 }
