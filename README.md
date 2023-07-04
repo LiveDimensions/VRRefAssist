@@ -1,5 +1,5 @@
 # VR RefAssist
-A set of custom attributes to automate usually time consuming references and repetitive tasks.
+A set of custom attributes for UdonSharp to automate usually time consuming references and repetitive tasks.
 
 <img src="https://user-images.githubusercontent.com/26588846/229404067-6b437274-e2f3-48fb-9959-5d53c817715f.png" width="600">
 
