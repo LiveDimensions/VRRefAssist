@@ -41,14 +41,26 @@ namespace VRRefAssist.Editor.Automation
 
             showPopupWhenFieldAutomationFailed = VRRefAssistSettings.GetOrCreateSettings().showPopupWarnsForFailedFieldAutomation;
 
+            int count = 1;
+            int total = sceneUdons.Length;
             foreach (var sceneUdon in sceneUdons)
             {
+                if (EditorUtility.DisplayCancelableProgressBar($"Running Field Automation...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {sceneUdon.name}", count / (total - 1f)))
+                {
+                    EditorUtility.ClearProgressBar();
+                    return;
+                }
+
+                count++;
+                
                 foreach (var fieldAutomation in FieldAutomationTypeResults.Keys.ToList())
                 {
-                    int count = sceneUdon.SetComponentFieldsWithAttribute(fieldAutomation);
-                    FieldAutomationTypeResults[fieldAutomation] += count;
+                    int resultCount = sceneUdon.SetComponentFieldsWithAttribute(fieldAutomation);
+                    FieldAutomationTypeResults[fieldAutomation] += resultCount;
                 }
             }
+            
+            EditorUtility.ClearProgressBar();
 
             foreach (var result in FieldAutomationTypeResults)
             {
