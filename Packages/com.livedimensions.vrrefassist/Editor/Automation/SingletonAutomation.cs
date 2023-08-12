@@ -76,6 +76,8 @@ namespace VRRefAssist.Editor.Automation
                     return resultCount;
                 }
                 
+                count++;
+                
                 resultCount += udon.SetSingletonReferences();
             }
 
