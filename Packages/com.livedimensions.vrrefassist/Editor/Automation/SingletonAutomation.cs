@@ -64,16 +64,24 @@ namespace VRRefAssist.Editor.Automation
 
             List<UdonSharpBehaviour> udons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>().ToList();
 
-            int count = 0;
-
+            int count = 1;
+            int total = udons.Count;
+            
+            int resultCount = 0;
             foreach (UdonSharpBehaviour udon in udons)
             {
-                count += udon.SetSingletonReferences();
+                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar($"Setting Singleton References...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {udon.name}", count / (total - 1f)))
+                {
+                    EditorUtility.ClearProgressBar();
+                    return resultCount;
+                }
+                
+                resultCount += udon.SetSingletonReferences();
             }
 
-            VRRADebugger.Log($"Successfully set ({count}) singleton references");
+            VRRADebugger.Log($"Successfully set ({resultCount}) singleton references");
 
-            return count;
+            return resultCount;
         }
 
         private static int SetSingletonReferences(this UdonSharpBehaviour udon)
