@@ -80,7 +80,7 @@ namespace VRRefAssist.Editor.Automation
             }
 
             VRRADebugger.Log($"Successfully set ({resultCount}) singleton references");
-
+            EditorUtility.ClearProgressBar();
             return resultCount;
         }
 
