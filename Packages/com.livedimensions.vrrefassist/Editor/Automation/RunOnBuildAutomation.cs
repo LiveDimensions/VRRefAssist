@@ -6,6 +6,7 @@ using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
+using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
 {
@@ -69,7 +70,7 @@ namespace VRRefAssist.Editor.Automation
             int total = runOnBuildMethods.Count();
             foreach (var method in runOnBuildMethods)
             {
-                if (EditorUtility.DisplayCancelableProgressBar($"Running OnBuild Methods...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent: {method.Name}", count / (total - 1f)))
+                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar($"Running OnBuild Methods...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent: {method.Name}", count / (total - 1f)))
                 {
                     EditorUtility.ClearProgressBar();
                     bool cancel = EditorUtility.DisplayDialog("Cancelled running OnBuild Methods", "You have canceled running OnBuild Methods\nDo you want to cancel the build as well?", "Cancel", "Continue");

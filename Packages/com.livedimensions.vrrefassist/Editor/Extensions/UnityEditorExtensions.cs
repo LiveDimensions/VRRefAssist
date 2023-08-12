@@ -98,5 +98,31 @@ namespace VRRefAssist.Editor.Extensions
 
             return null;
         }
+        
+        private static System.Diagnostics.Stopwatch smartProgressBarWatch = System.Diagnostics.Stopwatch.StartNew();
+        private static int smartProgressBarDisplaysSinceLastUpdate = 0;
+        
+        public static bool DisplaySmartUpdatingCancellableProgressBar(string title, string details, float progress, int updateIntervalByMS = 200, int updateIntervalByCall = 50)
+        {
+            bool updateProgressBar =
+                smartProgressBarWatch.ElapsedMilliseconds >= updateIntervalByMS
+                || ++smartProgressBarDisplaysSinceLastUpdate >= updateIntervalByCall;
+
+            if (updateProgressBar)
+            {
+                smartProgressBarWatch.Stop();
+                smartProgressBarWatch.Reset();
+                smartProgressBarWatch.Start();
+
+                smartProgressBarDisplaysSinceLastUpdate = 0;
+
+                if (EditorUtility.DisplayCancelableProgressBar(title, details, progress))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

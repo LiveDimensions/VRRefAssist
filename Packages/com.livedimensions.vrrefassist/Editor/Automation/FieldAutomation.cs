@@ -45,7 +45,7 @@ namespace VRRefAssist.Editor.Automation
             int total = sceneUdons.Length;
             foreach (var sceneUdon in sceneUdons)
             {
-                if (EditorUtility.DisplayCancelableProgressBar($"Running Field Automation...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {sceneUdon.name}", count / (total - 1f)))
+                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar($"Running Field Automation...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {sceneUdon.name}", count / (total - 1f)))
                 {
                     EditorUtility.ClearProgressBar();
                     return;
