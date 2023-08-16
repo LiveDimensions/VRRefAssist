@@ -42,11 +42,6 @@ namespace VRRefAssist.Editor.Automation
                     }
                 }
             }
-
-            foreach (var singletonUsingUdon in typesUsingSingletons)
-            {
-                VRRADebugger.Log($"Found {singletonUsingUdon.Value.Count} singleton fields in {singletonUsingUdon.Key.Name}");
-            }
         }
 
         /// <summary>
@@ -95,15 +90,11 @@ namespace VRRefAssist.Editor.Automation
         public static int SetAllSingletonReferences()
         {
             RefreshSingletonsInScene();
-
-            List<Tuple<UdonSharpBehaviour, FieldInfo>> ALL_THE_THINGS = new List<Tuple<UdonSharpBehaviour, FieldInfo>>();
             
             int count = 1;
             int total = typesUsingSingletons.Count;
             
-            
             int resultCount = 0;
-            int sum = 0;
             
             foreach (var typeUsingSingleton in typesUsingSingletons)
             {
@@ -132,28 +123,14 @@ namespace VRRefAssist.Editor.Automation
                             continue;
                         }
                         
-                        ALL_THE_THINGS.Add(new Tuple<UdonSharpBehaviour, FieldInfo>(sceneUdon, field));
-                        
                         resultCount++;
                         
                         field.SetValue(sceneUdon, sceneSingletonsDict[field.FieldType]);
                     }
                 }
-                
-                VRRADebugger.Log("Found " + udons.Count + " instances of " + typeToFind.Name + " in the scene, which has " + fields.Length * udons.Count + " singleton fields in total.");
-                sum += fields.Length * udons.Count;
             }
             
-            List<Tuple<UdonSharpBehaviour, FieldInfo>> copy = new List<Tuple<UdonSharpBehaviour, FieldInfo>>(ALL_THE_THINGS);
-
-            var results = ALL_THE_THINGS.GroupBy(x => x).Where(g => g.Count() > 1).SelectMany(g => g).ToList();
-
-            foreach (var repeat in results)
-            {
-                VRRADebugger.LogError("Repeat found: " + repeat.Item1.GetUdonTypeName() + " : " + repeat.Item2.Name, repeat.Item1.gameObject);
-            }
-            
-            VRRADebugger.Log($"Successfully set ({resultCount}) singleton references : sum : {sum}");
+            VRRADebugger.Log($"Successfully set ({resultCount}) singleton references");
             EditorUtility.ClearProgressBar();
             
             return resultCount;
