@@ -1,6 +1,6 @@
 {
   "name": "com.livedimensions.vrrefassist",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Set of custom attributes to automate time consuming references and repetitive tasks.",
   "displayName": "VR RefAssist",
   "author": {
