@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -26,7 +25,32 @@ namespace VRRefAssist.Editor.Automation
             {
                 FieldAutomationTypeResults.Add(autosetAttribute, 0);
             }
+
+            //Find all classes that inherit from UdonSharpBehaviour
+            List<Type> uSharpInheritors = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(UdonSharpBehaviour))).ToList();
+
+            //Find all fields in all UdonSharpBehaviours that have an AutosetAttribute and cache them
+            foreach (var uSharpInheritor in uSharpInheritors)
+            {
+                FieldInfo[] fields = GetAllFields(uSharpInheritor).ToArray();
+
+                foreach (FieldInfo field in fields)
+                {
+                    AutosetAttribute customAttribute = (AutosetAttribute)field.GetCustomAttribute(typeof(AutosetAttribute));
+                    if (customAttribute == null) continue;
+                    if (!field.IsSerialized()) continue;
+
+                    if (cachedAutosetFields.ContainsKey(uSharpInheritor))
+                        cachedAutosetFields[uSharpInheritor].Add(field);
+                    else
+                        cachedAutosetFields.Add(uSharpInheritor, new List<FieldInfo> { field });
+                }
+            }
         }
+
+        private static readonly Dictionary<Type, List<FieldInfo>> cachedAutosetFields = new Dictionary<Type, List<FieldInfo>>();
 
         private static readonly Dictionary<Type, int> FieldAutomationTypeResults = new Dictionary<Type, int>();
 
@@ -37,15 +61,18 @@ namespace VRRefAssist.Editor.Automation
         [MenuItem("VR RefAssist/Tools/Execute Field Automation", priority = 202)]
         public static void ExecuteAllFieldAutomation()
         {
-            UdonSharpBehaviour[] sceneUdons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>();
-
+            FieldAutomationTypeResults.Clear();
+            
             showPopupWhenFieldAutomationFailed = VRRefAssistSettings.GetOrCreateSettings().showPopupWarnsForFailedFieldAutomation;
 
             int count = 1;
-            int total = sceneUdons.Length;
-            foreach (var sceneUdon in sceneUdons)
+            int total = cachedAutosetFields.Count;
+
+            foreach (var cachedValuePair in cachedAutosetFields)
             {
-                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar($"Running Field Automation...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {sceneUdon.name}", count / (total - 1f)))
+                Type typeToFind = cachedValuePair.Key;
+
+                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar("Running Field Automation...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {typeToFind.Name}", count / (total - 1f)))
                 {
                     EditorUtility.ClearProgressBar();
                     return;
@@ -53,10 +80,82 @@ namespace VRRefAssist.Editor.Automation
 
                 count++;
 
-                foreach (var fieldAutomation in FieldAutomationTypeResults.Keys.ToList())
+                //When getting the udons, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
+                List<UdonSharpBehaviour> udons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
+
+                FieldInfo[] fields = cachedValuePair.Value.ToArray();
+
+                foreach (var sceneUdon in udons)
                 {
-                    int resultCount = sceneUdon.SetComponentFieldsWithAttribute(fieldAutomation);
-                    FieldAutomationTypeResults[fieldAutomation] += resultCount;
+                    foreach (var field in fields)
+                    {
+                        AutosetAttribute customAttribute = field.GetCustomAttribute<AutosetAttribute>();
+
+                        if (customAttribute.dontOverride && field.GetValue(sceneUdon) != null)
+                        {
+                            continue;
+                        }
+
+                        bool isArray = field.FieldType.IsArray;
+
+                        object[] components = customAttribute.GetObjectsLogic(sceneUdon, isArray ? field.FieldType.GetElementType() : field.FieldType);
+
+                        bool failToSet;
+
+                        if (isArray)
+                        {
+                            failToSet = components.Length == 0;
+                        }
+                        else
+                        {
+                            failToSet = components.FirstOrDefault() == null;
+                        }
+
+                        if (failToSet)
+                        {
+                            VRRADebugger.LogError($"Failed to set [{customAttribute}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+
+                            if (showPopupWhenFieldAutomationFailed)
+                            {
+                                bool result = EditorUtility.DisplayDialog("Field Automation...",
+                                    $"Failed to set [{customAttribute}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}",
+                                    "Continue", "Abort");
+
+                                if (result) continue;
+
+                                throw new Exception("Field Automation Aborted");
+                            }
+
+                            continue;
+                        }
+
+                        object obj;
+                        if (isArray)
+                        {
+                            var elementType = field.FieldType.GetElementType();
+
+                            var actualValues = Array.CreateInstance(elementType, components.Length);
+
+                            Array.Copy(components, actualValues, components.Length);
+
+                            obj = actualValues;
+                        }
+                        else
+                        {
+                            obj = components.FirstOrDefault();
+                        }
+
+                        field.SetValue(sceneUdon, obj);
+
+                        Type customAttributeType = customAttribute.GetType();
+
+                        if (FieldAutomationTypeResults.ContainsKey(customAttributeType))
+                            FieldAutomationTypeResults[customAttributeType]++;
+                        else
+                            FieldAutomationTypeResults.Add(customAttributeType, 1);
+                    }
+
+                    UnityEditorExtensions.FullSetDirty(sceneUdon);
                 }
             }
 
@@ -67,80 +166,6 @@ namespace VRRefAssist.Editor.Automation
                 if (result.Value > 0)
                     VRRADebugger.Log($"Successfully set ({result.Value}) {result.Key.Name} references");
             }
-        }
-
-        private static int SetComponentFieldsWithAttribute(this UdonSharpBehaviour sceneUdon, Type automationType)
-        {
-            FieldInfo[] fields = GetAllFields(sceneUdon.GetType()).ToArray();
-
-            int count = 0;
-            foreach (FieldInfo field in fields)
-            {
-                AutosetAttribute customAttribute = (AutosetAttribute)field.GetCustomAttribute(automationType);
-                if (customAttribute == null) continue;
-                if (!field.IsSerialized()) continue;
-
-                if (customAttribute.dontOverride && field.GetValue(sceneUdon) != null)
-                {
-                    continue;
-                }
-
-                bool isArray = field.FieldType.IsArray;
-
-                object[] components = customAttribute.GetObjectsLogic(sceneUdon, isArray ? field.FieldType.GetElementType() : field.FieldType);
-
-                bool failToSet;
-
-                if (isArray)
-                {
-                    failToSet = components.Length == 0;
-                }
-                else
-                {
-                    failToSet = components.FirstOrDefault() == null;
-                }
-
-                if (failToSet)
-                {
-                    VRRADebugger.LogError($"Failed to set [{automationType}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
-
-                    if (showPopupWhenFieldAutomationFailed)
-                    {
-                        bool result = EditorUtility.DisplayDialog("Field Automation...",
-                            $"Failed to set [{automationType}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}",
-                            "Continue", "Abort");
-
-                        if (result) continue;
-
-                        throw new Exception("Field Automation Aborted");
-                    }
-
-                    continue;
-                }
-
-                object obj;
-                if (isArray)
-                {
-                    var elementType = field.FieldType.GetElementType();
-
-                    var actualValues = Array.CreateInstance(elementType, components.Length);
-
-                    Array.Copy(components, actualValues, components.Length);
-
-                    obj = actualValues;
-                }
-                else
-                {
-                    obj = components.FirstOrDefault();
-                }
-
-                field.SetValue(sceneUdon, obj);
-
-                count++;
-                UnityEditorExtensions.FullSetDirty(sceneUdon);
-            }
-
-            return count;
         }
 
         public static IEnumerable<FieldInfo> GetAllFields(Type t)
