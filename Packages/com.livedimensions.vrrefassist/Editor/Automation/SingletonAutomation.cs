@@ -127,6 +127,8 @@ namespace VRRefAssist.Editor.Automation
                         
                         field.SetValue(sceneUdon, sceneSingletonsDict[field.FieldType]);
                     }
+                    
+                    UnityEditorExtensions.FullSetDirty(sceneUdon);
                 }
             }
             
