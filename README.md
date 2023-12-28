@@ -11,7 +11,7 @@ A set of custom attributes for UdonSharp to automate usually time consuming refe
 ## How to install
 In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: 
 
-`https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist`
+<https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist>
 
 Or download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
 
@@ -47,7 +47,9 @@ public class TestClass : UdonSharpBehaviour
 ### RunOnBuild
 `[RunOnBuild]`
 
-This attribute is only supported on **static** methods at the moment, and will run whenever a VRChat build is requested. There is also an optional `executionOrder` parameter
+This attribute is supported on both static and instance methods! These methods will be run whenever a VRChat build is requested.
+
+There is also an optional `executionOrder` parameter, values higher than `1000` will execute **after** field automation. Default value is `0` (Runs before any field automation).
 
 #### Example
 ```cs
@@ -60,11 +62,9 @@ public class BuildDate : UdonSharpBehaviour
     //UpdateBuildText will be run when a build is requested and will set the TextMeshPro text to the build date. 
     #if UNITY_EDITOR && !COMPILER_UDONSHARP
     [RunOnBuild]
-    private static void UpdateBuildText()
+    private void UpdateBuildText()
     {
-        BuildDate buildDate = FindObjectOfType<BuildDate>();
-
-        buildDate.buildDateText.text = "This world was built "  + DateTime.Now;
+        buildDateText.text = "This world was built "  + DateTime.Now;
     }
     #endif
 }
