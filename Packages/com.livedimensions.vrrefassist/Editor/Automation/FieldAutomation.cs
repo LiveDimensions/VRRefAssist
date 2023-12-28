@@ -15,9 +15,7 @@ namespace VRRefAssist.Editor.Automation
         static FieldAutomation()
         {
             //Make list of all AutosetAttributes in the project by searching all assemblies and checking if is subclass of AutosetAttribute
-            List<Type> autosetAttributes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(AutosetAttribute))).ToList();
+            List<Type> autosetAttributes = TypeCache.GetTypesDerivedFrom<AutosetAttribute>().Where(t => !t.IsAbstract).ToList();
 
             FieldAutomationTypeResults.Clear();
 
@@ -27,9 +25,7 @@ namespace VRRefAssist.Editor.Automation
             }
 
             //Find all classes that inherit from UdonSharpBehaviour
-            List<Type> uSharpInheritors = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(UdonSharpBehaviour))).ToList();
+            List<Type> uSharpInheritors = TypeCache.GetTypesDerivedFrom<UdonSharpBehaviour>().Where(t => !t.IsAbstract).ToList();
 
             //Find all fields in all UdonSharpBehaviours that have an AutosetAttribute and cache them
             foreach (var uSharpInheritor in uSharpInheritors)
@@ -59,12 +55,24 @@ namespace VRRefAssist.Editor.Automation
         private static bool showPopupWhenFieldAutomationFailed;
 
         [MenuItem("VR RefAssist/Tools/Execute Field Automation", priority = 202)]
+        public static void ManuallyExecuteFieldAutomation()
+        {
+            ExecuteAllFieldAutomation(out _);
+        }
+
         public static void ExecuteAllFieldAutomation()
+        {
+            ExecuteAllFieldAutomation(out _);
+        }
+        
+        public static void ExecuteAllFieldAutomation(out bool cancelBuild)
         {
             FieldAutomationTypeResults.Clear();
             
             showPopupWhenFieldAutomationFailed = VRRefAssistSettings.GetOrCreateSettings().showPopupWarnsForFailedFieldAutomation;
 
+            cancelBuild = false;
+            
             int count = 1;
             int total = cachedAutosetFields.Count;
 
@@ -75,13 +83,19 @@ namespace VRRefAssist.Editor.Automation
                 if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar("Running Field Automation...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent U# Behaviour: {typeToFind.Name}", count / (total - 1f)))
                 {
                     EditorUtility.ClearProgressBar();
+                    
+                    cancelBuild = EditorUtility.DisplayDialog("Cancelled running Field Automation", "You have canceled field automation (Autoset fields)\nDo you want to cancel the build as well?", "Cancel", "Continue");
                     return;
                 }
 
                 count++;
 
                 //When getting the udons, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
+#if UNITY_2020_1_OR_NEWER
+                List<UdonSharpBehaviour> udons = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();          
+#else
                 List<UdonSharpBehaviour> udons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
+#endif
 
                 FieldInfo[] fields = cachedValuePair.Value.ToArray();
 
@@ -113,17 +127,19 @@ namespace VRRefAssist.Editor.Automation
 
                         if (failToSet)
                         {
-                            VRRADebugger.LogError($"Failed to set [{customAttribute}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+                            VRRADebugger.LogError($"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
 
                             if (showPopupWhenFieldAutomationFailed)
                             {
-                                bool result = EditorUtility.DisplayDialog("Field Automation...",
-                                    $"Failed to set [{customAttribute}] ({field.DeclaringType}) {field.Name} on ({sceneUdon.GetType()}) {sceneUdon.name}",
-                                    "Continue", "Abort");
+                                bool cancel = EditorUtility.DisplayDialog("Failed Field Automation...",
+                                    $"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneUdon.GetType()}) {sceneUdon.name}\nDo you want to cancel the build?",
+                                    "Cancel", "Continue");
 
-                                if (result) continue;
-
-                                throw new Exception("Field Automation Aborted");
+                                if (cancel)
+                                {
+                                    cancelBuild = true;
+                                    return;
+                                }
                             }
 
                             continue;
