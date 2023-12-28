@@ -1,107 +1,95 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
+using System.Diagnostics;
 using UnityEditor;
-using UnityEngine;
-using VRC.SDKBase.Editor.BuildPipeline;
 using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
 {
-    [InitializeOnLoad]
     public static class RunOnBuildAutomation
     {
-        private static List<MethodInfo> runOnBuildMethods;
-        private const BindingFlags runOnBuildBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-        private static bool refreshingOnBuildMethods;
-
-        private static DateTime runOnBuildStartTime;
-
-        static RunOnBuildAutomation()
-        {
-            refreshingOnBuildMethods = true;
-
-            new Thread(SearchAssemblyForOnBuildMethods).Start();
-        }
-
-        private static void SearchAssemblyForOnBuildMethods()
-        {
-            runOnBuildMethods = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(x => x.GetTypes())
-                .Where(x => x.IsClass).SelectMany(x => x.GetMethods(runOnBuildBindingFlags))
-                .Where(x => x.GetCustomAttributes<RunOnBuildAttribute>().FirstOrDefault() != null)
-                .OrderBy(x => x.GetCustomAttribute<RunOnBuildAttribute>().executionOrder).ToList();
-
-            /*
-            foreach (var onBuildMethod in runOnBuildMethods)
-            {
-                VRFSDebugger.Log($"Found <b>[<color=#4dae6c>RunOnBuild</color>]</b> method: <b>{onBuildMethod.Name}</b> in {onBuildMethod.DeclaringType}");
-                if (!onBuildMethod.IsStatic)
-                    VRFSDebugger.LogError($"<b>[<color=#4dae6c>RunOnBuild</color>]</b> is not compatible with Non Static methods! (<b>{onBuildMethod.Name}</b> in {onBuildMethod.DeclaringType})");
-            }*/
-
-            refreshingOnBuildMethods = false;
-        }
-
-
         [MenuItem("VR RefAssist/Tools/Run OnBuild Methods", priority = 200)]
         private static void ManuallyRunOnBuildMethods()
         {
-            RunOnBuildMethods();
+            RunOnBuildMethods.CacheUSharpInstances();
+            
+            RunOnBuildMethodsWithExecuteOrderType(ExecuteOrderType.PreFieldAutomation);
+            RunOnBuildMethodsWithExecuteOrderType(ExecuteOrderType.PostFieldAutomation);
+        }
+        
+        public static void RunOnBuildMethodsWithExecuteOrderType(ExecuteOrderType executeOrderType)
+        {
+            RunOnBuildMethodsWithExecuteOrderType(executeOrderType, out _);
         }
 
-        public static bool RunOnBuildMethods()
+        public static void RunOnBuildMethodsWithExecuteOrderType(ExecuteOrderType executeOrderType, out bool cancelBuild)
         {
-            //This should only happen if you request a build within less than a second after recompiling
-            if (refreshingOnBuildMethods)
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            
+            cancelBuild = false;
+
+            var methods = executeOrderType == ExecuteOrderType.PreFieldAutomation ? RunOnBuildMethods.preFieldAutomationMethods : RunOnBuildMethods.postFieldAutomationMethods;
+
+            string preOrPost = executeOrderType == ExecuteOrderType.PreFieldAutomation ? "pre" : "post";
+            
+            int count = 0;
+            int total = methods.Count;
+            
+            foreach (var method in methods)
             {
-                VRRADebugger.LogError("Still refreshing OnBuild Methods!");
-                return false;
-            }
-
-            if (!runOnBuildMethods.Any()) return true;
-
-            runOnBuildStartTime = DateTime.Now;
-            VRRADebugger.Log($"Running {runOnBuildMethods.Count()} OnBuild Methods...");
-
-            int count = 1;
-            int total = runOnBuildMethods.Count();
-            foreach (var method in runOnBuildMethods)
-            {
-                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar($"Running OnBuild Methods...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent: {method.Name}", count / (total - 1f)))
+                if (UnityEditorExtensions.DisplaySmartUpdatingCancellableProgressBar($"Running {preOrPost}-field automation OnBuild Methods...", count == total ? "Finishing..." : $"Progress: {count}/{total}.\tCurrent: {method.MethodInfo.Name}", count / (total - 1f)))
                 {
                     EditorUtility.ClearProgressBar();
-                    bool cancel = EditorUtility.DisplayDialog("Cancelled running OnBuild Methods", "You have canceled running OnBuild Methods\nDo you want to cancel the build as well?", "Cancel", "Continue");
-                    return !cancel;
-                }
+                    
+                    stopwatch.Stop();
+                    
+                    cancelBuild = EditorUtility.DisplayDialog("Cancelled running instance OnBuild Methods", "You have canceled running instance OnBuild Methods\nDo you want to cancel the build as well?", "Cancel", "Continue");
 
-                count++;
-
-                try
-                {
-                    method.Invoke(null, null);
-                }
-                catch (Exception e)
-                {
-                    VRRADebugger.LogError($"Error running OnBuild Method <b>{method.Name}</b> in {method.DeclaringType}:\n{e}");
-                    Debug.LogException(e);
-
-                    bool result = EditorUtility.DisplayDialog("Running OnBuild Methods...",
-                        "An error occured while running " + method.Name + ".\n\n" + e.Message + "\n\n" + e.StackTrace,
-                        "Continue", "Abort");
-
-                    if (result) continue;
-                    VRRADebugger.Log($"Ran {count} OnBuild Methods in {(DateTime.Now - runOnBuildStartTime).TotalSeconds} seconds. Before it was cancelled");
+                    if (!cancelBuild)
+                    {
+                        stopwatch.Start();
+                        continue;
+                    }
+                    
+                    VRRADebugger.Log($"Ran {count}/{total} OnBuild Methods {preOrPost}-field automation in {stopwatch.Elapsed.TotalSeconds:F} seconds. Before it was cancelled");
                     EditorUtility.ClearProgressBar();
-                    return false;
+                    return;
+                }
+                
+                if (!method.TryInvoke(out Exception e))
+                {
+                    stopwatch.Stop();
+                    
+                    cancelBuild = EditorUtility.DisplayDialog("Running instance OnBuild Methods...",
+                        "An error occured while running " + method.MethodInfo.Name + ".\n\n" + e.Message + "\n\n" + e.StackTrace + "\n\nDo you want to cancel the build?",
+                        "Cancel", "Continue");
+
+                    if (!cancelBuild)
+                    {
+                        stopwatch.Start();
+                        continue;
+                    }
+                    
+                    VRRADebugger.Log($"Ran {count}/{total} OnBuild Methods {preOrPost}-field automation in {stopwatch.Elapsed.TotalSeconds:F} seconds. Before it was cancelled");
+                    EditorUtility.ClearProgressBar();
+                    return;
+                }
+                else
+                {
+                    count++;
                 }
             }
-
-            VRRADebugger.Log($"Finished running {runOnBuildMethods.Count()} OnBuild Methods in {(DateTime.Now - runOnBuildStartTime).TotalSeconds:F} seconds.");
+            
             EditorUtility.ClearProgressBar();
-            return true;
+            stopwatch.Stop();
+
+            if (count > 0)
+                VRRADebugger.Log($"Finished running {count}/{total} OnBuild Methods {preOrPost}-field automation in {stopwatch.Elapsed.TotalSeconds:F} seconds.");
+        }
+
+        public enum ExecuteOrderType
+        {
+            PreFieldAutomation,
+            PostFieldAutomation
         }
     }
 }

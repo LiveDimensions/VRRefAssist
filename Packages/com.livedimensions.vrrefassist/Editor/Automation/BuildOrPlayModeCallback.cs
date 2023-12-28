@@ -32,25 +32,61 @@ namespace VRRefAssist.Editor.Automation
 
         public static bool ExecuteAutomation(bool buildRequested)
         {
+            //
+            //BUILD REQUESTED
+            //
             if (buildRequested)
             {
-                bool runOnBuildSuccess = RunOnBuildAutomation.RunOnBuildMethods();
-                
-                FieldAutomation.ExecuteAllFieldAutomation();
-                SingletonAutomation.SetAllSingletonReferences();
+                RunOnBuildMethods.CacheUSharpInstances();
 
-                return runOnBuildSuccess;
+                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation, out bool cancelBuild);
+                if (cancelBuild)
+                {
+                    return false;
+                }
+
+                FieldAutomation.ExecuteAllFieldAutomation(out cancelBuild);
+                if (cancelBuild)
+                {
+                    return false;
+                }
+
+                SingletonAutomation.SetAllSingletonReferences(out cancelBuild);
+                if (cancelBuild)
+                {
+                    return false;
+                }
+
+
+                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PostFieldAutomation, out cancelBuild);
+                if (cancelBuild)
+                {
+                    return false;
+                }
+
+                return true;
             }
 
-            if (VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode)
+            //
+            //ENTERING PLAY MODE
+            //
+            bool executeRunOnBuildMethodsWhenEnteringPlayMode = VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode;
+
+            if (executeRunOnBuildMethodsWhenEnteringPlayMode)
             {
-                RunOnBuildAutomation.RunOnBuildMethods();
+                RunOnBuildMethods.CacheUSharpInstances();
+                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation);
             }
-            
+
             if (VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode)
             {
                 FieldAutomation.ExecuteAllFieldAutomation();
                 SingletonAutomation.SetAllSingletonReferences();
+            }
+
+            if (executeRunOnBuildMethodsWhenEnteringPlayMode)
+            {
+                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PostFieldAutomation);
             }
 
             return true; //There is no way of cancelling entering play mode
