@@ -24,6 +24,9 @@ namespace VRRefAssist.Editor.Extensions
             }
         }
         
+#if UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectsOfType<T>(bool includeInactive) instead")]
+#endif
         public static T[] FindObjectsOfTypeIncludeDisabled<T>() where T : Object
         {
             //If T is a GameObject, get all Transforms and cast them to GameObjects
@@ -44,6 +47,9 @@ namespace VRRefAssist.Editor.Extensions
             return objs.ToArray();
         }
 
+#if UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectsOfType(Type type,bool includeInactive) instead")]
+#endif
         public static Component[] FindObjectsOfTypeIncludeDisabled(Type type)
         {
             if (type == null) return Array.Empty<Component>();
@@ -60,6 +66,9 @@ namespace VRRefAssist.Editor.Extensions
             return objs.ToArray();
         }
 
+#if UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectOfType<T>(bool includeInactive) instead")]
+#endif
         public static T FindObjectOfTypeIncludeDisabled<T>() where T : Object
         {
             //If T is a GameObject, get all Transforms and cast them to GameObjects
@@ -82,6 +91,9 @@ namespace VRRefAssist.Editor.Extensions
             return null;
         }
 
+#if UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectOfType(Type type, bool includeInactive) instead")]
+#endif
         public static Component FindObjectOfTypeIncludeDisabled(Type type)
         {
             if (type == null) return null;

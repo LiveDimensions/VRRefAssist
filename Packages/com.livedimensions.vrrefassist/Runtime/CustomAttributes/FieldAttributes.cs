@@ -109,7 +109,11 @@ namespace VRRefAssist
 
         public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
         {
-            return includeDisabled ? FindObjectsOfTypeIncludeDisabled(type) : UnityEngine.Object.FindObjectsOfType(type);        
+            #if UNITY_2020_1_OR_NEWER
+            return UnityEngine.Object.FindObjectsOfType(type, includeDisabled);
+            #else
+            return includeDisabled ? FindObjectsOfTypeIncludeDisabled(type) : UnityEngine.Object.FindObjectsOfType(type);
+            #endif
         }
         
         private static Component[] FindObjectsOfTypeIncludeDisabled(Type type)
