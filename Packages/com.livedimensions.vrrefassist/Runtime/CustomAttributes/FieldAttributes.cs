@@ -189,7 +189,7 @@ namespace VRRefAssist
 
     /// <summary>
     /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
-    /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects.
+    /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects. EditorOnly GameObjects are excluded.
     /// </summary>
     public class FindObjectWithTag : AutosetAttribute
     {
@@ -234,6 +234,10 @@ namespace VRRefAssist
             return gameObject.tag == "EditorOnly" || (hasParent && IsGameObjectEditorOnly(gameObject.transform.parent.gameObject));
         }
     }
+    /// <summary>
+    /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
+    /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects. EditorOnly GameObjects are excluded.
+    /// </summary>
     public class FindObjectsWithTag : FindObjectWithTag {
         public FindObjectsWithTag(string tag, bool dontOverride = false) : base(tag, dontOverride) {
         }
