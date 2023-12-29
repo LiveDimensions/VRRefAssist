@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 namespace VRRefAssist
 {
@@ -183,6 +184,58 @@ namespace VRRefAssist
             if (type == typeof(GameObject)) return new object[] {findInChildrenGo};
 
             return findInChildrenGo == null ? Array.Empty<Component>() : findInChildrenGo.GetComponents(type);
+        }
+    }
+
+    /// <summary>
+    /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
+    /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects.
+    /// </summary>
+    public class FindObjectWithTag : AutosetAttribute
+    {
+		public readonly string tag;
+		public FindObjectWithTag(string tag, bool dontOverride = false) : base(dontOverride)
+        {
+            this.tag = tag;
+        }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, System.Type type)
+        {
+            GameObject[] gameObjects = GameObject.FindGameObjectsWithTag(tag);
+
+            if (gameObjects == null || gameObjects.Length == 0) {
+                #if UNITY_EDITOR && !COMPILER_UDONSHARP
+                VRRefAssist.VRRADebugger.LogError($"No GameObjects with tag '{tag}' found! Double check there isn't a typo in the tag name.");
+                #endif
+                return new object[] { null };
+            }
+
+            gameObjects = gameObjects
+                .Where(go => !IsGameObjectEditorOnly(go))
+                .OrderBy(go => go.transform.name)
+                .ToArray();
+            
+
+			if (type == typeof(GameObject)) return gameObjects;
+            if (type == typeof(Transform)) return gameObjects.Select(go => go.transform).ToArray();
+
+			List<Component> components = new List<Component>();
+            components.Capacity = Mathf.CeilToInt(gameObjects.Length * 1.1f);
+			
+			foreach(GameObject go in gameObjects) {
+				components.AddRange(go.GetComponents(type));
+			}
+
+			return components.ToArray();
+        }
+
+        private static bool IsGameObjectEditorOnly(GameObject gameObject) {
+            bool hasParent = gameObject.transform.parent != null;
+            return gameObject.tag == "EditorOnly" || (hasParent && IsGameObjectEditorOnly(gameObject.transform.parent.gameObject));
+        }
+    }
+    public class FindObjectsWithTag : FindObjectWithTag {
+        public FindObjectsWithTag(string tag, bool dontOverride = false) : base(tag, dontOverride) {
         }
     }
 }
