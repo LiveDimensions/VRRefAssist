@@ -243,6 +243,7 @@ namespace VRRefAssist
         }
 
         private static bool IsGameObjectEditorOnly(GameObject gameObject) {
+            if (gameObject == null) return true;
             bool hasParent = gameObject.transform.parent != null;
             bool isThisEditorOnly = 
                 gameObject.tag == "EditorOnly" 
