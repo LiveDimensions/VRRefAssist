@@ -210,7 +210,7 @@ namespace VRRefAssist
 
             if (gameObjectsWithTag == null || gameObjectsWithTag.Length == 0) {
                 #if UNITY_EDITOR && !COMPILER_UDONSHARP
-                VRRefAssist.VRRADebugger.LogError($"No GameObjects with tag '{tag}' found! Double check there isn't a typo in the tag name.");
+                    VRRefAssist.VRRADebugger.LogError($"[FindObjectWithTag] No GameObjects with tag '{tag}' found! Double check there isn't a typo in the tag name.");
                 #endif
                 return new object[] { null };
             }
@@ -224,6 +224,8 @@ namespace VRRefAssist
                 gameObjectsWithTag = gameObjectsWithTag.Where(go => go.activeInHierarchy).ToArray();
             }
 
+            // Debug.Log($"FindObjectWithTag took {stopwatch.ElapsedMilliseconds}ms to find {gameObjectsWithTag.Length} GameObjects with tag {tag}.");
+
 			if (type == typeof(GameObject)) return gameObjectsWithTag;
             if (type == typeof(Transform)) return gameObjectsWithTag.Select(go => go.transform).ToArray();
 
@@ -235,7 +237,7 @@ namespace VRRefAssist
 			}
 
             stopwatch.Stop();
-            // Debug.Log($"FindObjectWithTag took {stopwatch.ElapsedMilliseconds}ms to find {gameObjects.Length} GameObjects with tag {tag} and get {components.Count} components of type {type.Name}.");
+            // Debug.Log($"FindObjectWithTag took {stopwatch.ElapsedMilliseconds}ms to find {gameObjectsWithTag.Length} GameObjects with tag {tag} and get {components.Count} components of type {type.Name}.");
 
 			return components.ToArray();
         }
