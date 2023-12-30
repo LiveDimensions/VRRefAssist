@@ -244,7 +244,12 @@ namespace VRRefAssist
 
         private static bool IsGameObjectEditorOnly(GameObject gameObject) {
             bool hasParent = gameObject.transform.parent != null;
-            bool isThisEditorOnly = gameObject.tag == "EditorOnly" || gameObject.hideFlags != HideFlags.None || UnityEditor.EditorUtility.IsPersistent(gameObject.transform.root.gameObject);
+            bool isThisEditorOnly = 
+                gameObject.tag == "EditorOnly" 
+                #if UNITY_EDITOR && !COMPILER_UDONSHARP //below causes compilation issues during build, this fixes it. If you know a better way let me know :3
+                    || gameObject.hideFlags != HideFlags.None || UnityEditor.EditorUtility.IsPersistent(gameObject.transform.root.gameObject)
+                #endif
+                ;
             return isThisEditorOnly || (hasParent && IsGameObjectEditorOnly(gameObject.transform.parent.gameObject));
         }
 
