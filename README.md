@@ -130,7 +130,7 @@ Will run `GameObject.FindGameObjectWithTag(<Tag>).GetComponent(<Type>)` on it's 
 
 #### Example
 ```cs
-//Will grab all Transforms that are on a GameObject with the tag "PossibleItemSpawnPoint".
+//Will grab all Transforms on each GameObject with the tag "PossibleItemSpawnPoint".
 [SerializedField, FindObjectsWithTag("PossibleItemSpawnPoint")] private Transform[] allPossibleItemSpawnPoints;
 or
 //Will grab all UdonBehaviours on each GameObject with the tag "PuzzleUdons", even if multiple UdonBehaviours are on one object or if the GameObject or UdonBehaviour is disabled.
