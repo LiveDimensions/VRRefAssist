@@ -199,7 +199,7 @@ namespace VRRefAssist
 
     /// <summary>
     /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
-    /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects. EditorOnly GameObjects are excluded.
+    /// By default, this will include disabled gameObjects, but this can be changed with 'includeDisabledGameObjects'. Disabled *components* are always included.
     /// </summary>
     public class FindObjectWithTag : AutosetAttribute
     {
@@ -213,17 +213,7 @@ namespace VRRefAssist
 
         public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, System.Type type)
         {
-            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-            stopwatch.Start();
-
             GameObject[] gameObjectsWithTag = FindGameObjectsWithTagIncludingDisabled(tag); //GameObject.FindGameObjectsWithTag does not actually include disabled objects, so we use this instead.
-
-            if (gameObjectsWithTag == null || gameObjectsWithTag.Length == 0) {
-                #if UNITY_EDITOR && !COMPILER_UDONSHARP
-                    VRRefAssist.VRRADebugger.LogError($"[FindObjectWithTag] No GameObjects with tag '{tag}' found! Double check there isn't a typo in the tag name.");
-                #endif
-                return new object[] { null };
-            }
 
             //The order is undefined, so we'll sort by name to help make it consistent.
             gameObjectsWithTag = gameObjectsWithTag
@@ -233,8 +223,6 @@ namespace VRRefAssist
             if (!includeDisabledGameObjects) {
                 gameObjectsWithTag = gameObjectsWithTag.Where(go => go.activeInHierarchy).ToArray();
             }
-
-            // Debug.Log($"FindObjectWithTag took {stopwatch.ElapsedMilliseconds}ms to find {gameObjectsWithTag.Length} GameObjects with tag {tag}.");
 
 			if (type == typeof(GameObject)) return gameObjectsWithTag;
             if (type == typeof(Transform)) return gameObjectsWithTag.Select(go => go.transform).ToArray();
@@ -246,35 +234,39 @@ namespace VRRefAssist
 				components.AddRange(go.GetComponents(type));
 			}
 
-            stopwatch.Stop();
-            // Debug.Log($"FindObjectWithTag took {stopwatch.ElapsedMilliseconds}ms to find {gameObjectsWithTag.Length} GameObjects with tag {tag} and get {components.Count} components of type {type.Name}.");
-
 			return components.ToArray();
         }
 
-        private static bool IsGameObjectEditorOnly(GameObject gameObject) {
-            if (gameObject == null) return true;
-            bool hasParent = gameObject.transform.parent != null;
-            bool isThisEditorOnly = 
-                gameObject.tag == "EditorOnly" 
-                #if UNITY_EDITOR && !COMPILER_UDONSHARP //below causes compilation issues during build, this fixes it. If you know a better way let me know :3
-                    || gameObject.hideFlags != HideFlags.None || UnityEditor.EditorUtility.IsPersistent(gameObject.transform.root.gameObject)
-                #endif
-                ;
-            return isThisEditorOnly || (hasParent && IsGameObjectEditorOnly(gameObject.transform.parent.gameObject));
+        private static bool IsGameObjectInScene(GameObject gameObject)
+        {
+            //based on https://docs.unity3d.com/ScriptReference/Resources.FindObjectsOfTypeAll.html
+            if (gameObject == null) return false;
+
+            #if UNITY_EDITOR && !COMPILER_UDONSHARP
+                bool isPersistent = UnityEditor.EditorUtility.IsPersistent(gameObject.transform.root.gameObject); 
+                bool isHiddenOrUneditable = gameObject.hideFlags == HideFlags.NotEditable || gameObject.hideFlags == HideFlags.HideAndDontSave;
+                bool isInScene = !isPersistent && !isHiddenOrUneditable;
+                return isInScene;
+            #else
+                return true;
+            #endif
         }
 
-        private static GameObject[] FindGameObjectsWithTagIncludingDisabled(string tag) {
+        private static GameObject[] FindGameObjectsWithTagIncludingDisabled(string tag)
+        {
             GameObject[] allGameObjects = Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[];
+            if (allGameObjects == null) return Array.Empty<GameObject>();
+
             return allGameObjects
                 .Where(go => go.CompareTag(tag))
-                .Where(go => !IsGameObjectEditorOnly(go))
+                .Where(go => IsGameObjectInScene(go)) //Resources.FindObjectsOfTypeAll includes file assets and prefabs, so we need to filter them out.
                 .ToArray();
         }
     }
+    
     /// <summary>
     /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
-    /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects. EditorOnly GameObjects are excluded.
+    /// By default, this will include disabled gameObjects, but this can be changed with 'includeDisabledGameObjects'. Disabled *components* are always included.
     /// </summary>
     public class FindObjectsWithTag : FindObjectWithTag {
         public FindObjectsWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(tag, includeDisabledGameObjects, dontOverride, suppressErrors)
