@@ -50,7 +50,7 @@ namespace VRRefAssist
     public class GetComponentInChildren : AutosetAttribute
     {
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        /// /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
         public GetComponentInChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
         }
@@ -205,6 +205,11 @@ namespace VRRefAssist
     {
 		public readonly string tag;
         public bool includeDisabledGameObjects;
+
+        /// <param name="tag">The tag to search for</param>
+        /// <param name="includeDisabledGameObjects">Include disabled GameObjects?</param>
+        /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
 		public FindObjectWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
             this.tag = tag;
@@ -213,7 +218,7 @@ namespace VRRefAssist
 
         public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, System.Type type)
         {
-            GameObject[] gameObjectsWithTag = FindGameObjectsWithTagIncludingDisabled(tag); //GameObject.FindGameObjectsWithTag does not actually include disabled objects, so we use this instead.
+            GameObject[] gameObjectsWithTag = FindGameObjectsWithTagIncludingDisabled(tag); //GameObject.FindObjectsWithTag does not actually include disabled objects, so we use this instead.
 
             //The order is undefined, so we'll sort by name to help make it consistent.
             gameObjectsWithTag = gameObjectsWithTag
