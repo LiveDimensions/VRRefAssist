@@ -4,6 +4,7 @@ using UdonSharp;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Linq;
+// ReSharper disable CoVariantArrayConversion
 
 namespace VRRefAssist
 {
@@ -14,10 +15,12 @@ namespace VRRefAssist
     public abstract class AutosetAttribute : Attribute
     {
         public readonly bool dontOverride;
+        public readonly bool suppressErrors;
         
-        protected AutosetAttribute(bool dontOverride = false)
+        protected AutosetAttribute(bool dontOverride = false, bool suppressErrors = false)
         {
             this.dontOverride = dontOverride;
+            this.suppressErrors = suppressErrors;
         }
         public abstract object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type);
     }
@@ -28,7 +31,8 @@ namespace VRRefAssist
     public class GetComponent : AutosetAttribute
     {
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public GetComponent(bool dontOverride = false) : base(dontOverride)
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public GetComponent(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
         }
 
@@ -46,7 +50,8 @@ namespace VRRefAssist
     public class GetComponentInChildren : AutosetAttribute
     {
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public GetComponentInChildren(bool dontOverride = false) : base(dontOverride)
+        /// /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public GetComponentInChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
         }
 
@@ -64,7 +69,8 @@ namespace VRRefAssist
     public class GetComponentInParent : AutosetAttribute
     {
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public GetComponentInParent(bool dontOverride = false) : base(dontOverride)
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public GetComponentInParent(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
         }
 
@@ -82,7 +88,8 @@ namespace VRRefAssist
     public class GetComponentInDirectParent : AutosetAttribute
     {
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public GetComponentInDirectParent(bool dontOverride = false) : base(dontOverride)
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public GetComponentInDirectParent(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
         }
 
@@ -103,7 +110,8 @@ namespace VRRefAssist
 
         /// <param name="includeDisabled">Include components in disabled GameObjects?</param>
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public FindObjectOfType(bool includeDisabled = true, bool dontOverride = false) : base(dontOverride)
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public FindObjectOfType(bool includeDisabled = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
             this.includeDisabled = includeDisabled;
         }
@@ -148,7 +156,8 @@ namespace VRRefAssist
 
         /// <param name="searchName">The name of the object to find</param>
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public Find(string searchName, bool dontOverride = false) : base(dontOverride)
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public Find(string searchName, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
             this.searchName = searchName;
         }
@@ -172,7 +181,8 @@ namespace VRRefAssist
 
         /// <param name="searchName">The name of the object to find</param>
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        public FindInChildren(string searchName, bool dontOverride = false) : base(dontOverride)
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public FindInChildren(string searchName, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
             this.searchName = searchName;
         }

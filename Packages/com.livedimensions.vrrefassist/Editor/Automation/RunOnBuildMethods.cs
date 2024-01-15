@@ -52,6 +52,15 @@ namespace VRRefAssist.Editor.Automation
                 }
 
                 uSharpTypeInstances.Add(instanceMethod.declaringType, new List<UdonSharpBehaviour>());
+                
+                var inheritedTypes = TypeCache.GetTypesDerivedFrom(instanceMethod.declaringType).Where(t => !t.IsAbstract).ToList();
+                
+                foreach (var inheritedType in inheritedTypes)
+                {
+                    if (uSharpTypeInstances.ContainsKey(inheritedType)) continue;
+                    
+                    uSharpTypeInstances.Add(inheritedType, new List<UdonSharpBehaviour>());
+                }
             }
 
             var staticAndInstanceMethods = staticMethods.OfType<RunOnBuildMethod>().Concat(instanceMethods).ToList();
@@ -88,6 +97,7 @@ namespace VRRefAssist.Editor.Automation
                 UdonSharpBehaviour[] uSharpInstances = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(uSharpType).Where(x => x.GetType() == uSharpType).Select(x => (UdonSharpBehaviour)x).ToArray();
 #endif
 
+                uSharpTypeInstances[uSharpType].Clear();
                 uSharpTypeInstances[uSharpType].AddRange(uSharpInstances);
             }
         }
@@ -145,14 +155,21 @@ namespace VRRefAssist.Editor.Automation
 
             protected override void Invoke()
             {
-                if (!uSharpTypeInstances.TryGetValue(declaringType, out var instances))
-                {
-                    return;
-                }
+                var allTypesWithMethod = TypeCache.GetTypesDerivedFrom(declaringType).Where(t => !t.IsAbstract).ToList();
+                
+                allTypesWithMethod.Add(declaringType);
 
-                foreach (var instance in instances)
+                foreach (var type in allTypesWithMethod)
                 {
-                    methodInfo.Invoke(instance, null);
+                    if (!uSharpTypeInstances.TryGetValue(type, out var instances))
+                    {
+                        return;
+                    }
+
+                    foreach (var instance in instances)
+                    {
+                        methodInfo.Invoke(instance, null);
+                    }   
                 }
             }
 

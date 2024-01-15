@@ -127,7 +127,11 @@ namespace VRRefAssist.Editor.Automation
 
                         if (failToSet)
                         {
-                            VRRADebugger.LogError($"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+                            //Don't log error if suppressErrors is true
+                            if (!customAttribute.suppressErrors)
+                            {
+                                VRRADebugger.LogError($"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+                            }
 
                             if (showPopupWhenFieldAutomationFailed)
                             {
