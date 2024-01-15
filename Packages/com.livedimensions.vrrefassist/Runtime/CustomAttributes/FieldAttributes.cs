@@ -205,7 +205,7 @@ namespace VRRefAssist
     {
 		public readonly string tag;
         public bool includeDisabledGameObjects;
-		public FindObjectWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false) : base(dontOverride)
+		public FindObjectWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
             this.tag = tag;
             this.includeDisabledGameObjects = includeDisabledGameObjects;
@@ -277,7 +277,7 @@ namespace VRRefAssist
     /// This will *not* include disabled GameObjects, but *will* include disabled components on enabled GameObjects. EditorOnly GameObjects are excluded.
     /// </summary>
     public class FindObjectsWithTag : FindObjectWithTag {
-        public FindObjectsWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false) : base(tag, includeDisabledGameObjects, dontOverride)
+        public FindObjectsWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(tag, includeDisabledGameObjects, dontOverride, suppressErrors)
         {
         }
     }
