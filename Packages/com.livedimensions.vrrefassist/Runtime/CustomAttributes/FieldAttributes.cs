@@ -203,14 +203,14 @@ namespace VRRefAssist
     /// </summary>
     public class FindObjectWithTag : AutosetAttribute
     {
-		public readonly string tag;
+        public readonly string tag;
         public bool includeDisabledGameObjects;
 
         /// <param name="tag">The tag to search for</param>
         /// <param name="includeDisabledGameObjects">Include disabled GameObjects?</param>
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
         /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
-		public FindObjectWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        public FindObjectWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
             this.tag = tag;
             this.includeDisabledGameObjects = includeDisabledGameObjects;
@@ -229,17 +229,17 @@ namespace VRRefAssist
                 gameObjectsWithTag = gameObjectsWithTag.Where(go => go.activeInHierarchy).ToArray();
             }
 
-			if (type == typeof(GameObject)) return gameObjectsWithTag;
+            if (type == typeof(GameObject)) return gameObjectsWithTag;
             if (type == typeof(Transform)) return gameObjectsWithTag.Select(go => go.transform).ToArray();
 
-			List<Component> components = new List<Component>();
+            List<Component> components = new List<Component>();
             components.Capacity = Mathf.CeilToInt(gameObjectsWithTag.Length * 1.1f);
-			
-			foreach(GameObject go in gameObjectsWithTag) {
-				components.AddRange(go.GetComponents(type));
-			}
+            
+            foreach(GameObject go in gameObjectsWithTag) {
+                components.AddRange(go.GetComponents(type));
+            }
 
-			return components.ToArray();
+            return components.ToArray();
         }
 
         private static bool IsGameObjectInScene(GameObject gameObject)
