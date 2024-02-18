@@ -126,7 +126,7 @@ namespace VRRefAssist.Editor.Automation
 
                 //When getting the udons, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
 #if UNITY_2020_1_OR_NEWER
-                List<UdonSharpBehaviour> udons = UnityEngine.Object.FindObjectsOfType(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
+                List<UdonSharpBehaviour> udons = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
 #else
                 List<UdonSharpBehaviour> udons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
 #endif
