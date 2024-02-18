@@ -47,11 +47,12 @@ namespace VRRefAssist.Editor.Automation
             {
                 if (!instanceMethod.declaringType.IsSubclassOf(typeof(UdonSharpBehaviour)))
                 {
-                    VRRADebugger.LogError($"RunOnBuild method {instanceMethod.MethodInfo.Name} in {instanceMethod.declaringType.Name} is not subclass of MonoBehaviour!");
+                    VRRADebugger.LogError($"RunOnBuild method {instanceMethod.MethodInfo.Name} in {instanceMethod.declaringType.Name} is not subclass of UdonSharpBehaviour!");
                     continue;
                 }
 
-                uSharpTypeInstances.Add(instanceMethod.declaringType, new List<UdonSharpBehaviour>());
+                if (!uSharpTypeInstances.ContainsKey(instanceMethod.declaringType))
+                    uSharpTypeInstances.Add(instanceMethod.declaringType, new List<UdonSharpBehaviour>());
                 
                 var inheritedTypes = TypeCache.GetTypesDerivedFrom(instanceMethod.declaringType).Where(t => !t.IsAbstract).ToList();
                 
