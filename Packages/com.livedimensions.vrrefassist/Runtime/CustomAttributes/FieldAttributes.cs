@@ -218,54 +218,52 @@ namespace VRRefAssist
 
         public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, System.Type type)
         {
-            GameObject[] gameObjectsWithTag = FindGameObjectsWithTagIncludingDisabled(tag); //GameObject.FindObjectsWithTag does not actually include disabled objects, so we use this instead.
-
-            //The order is undefined, so we'll sort by name to help make it consistent.
-            gameObjectsWithTag = gameObjectsWithTag
-                .OrderBy(go => go.transform.name)
-                .ToArray();
-
-            if (!includeDisabledGameObjects) {
-                gameObjectsWithTag = gameObjectsWithTag.Where(go => go.activeInHierarchy).ToArray();
+            List<GameObject> results;
+            
+            if (includeDisabledGameObjects)
+            {
+                //Unity 2020 and newer has a method to find objects of type including disabled ones, and then we can filter by tag.
+#if UNITY_2020_1_OR_NEWER
+                results = UnityEngine.Object.FindObjectsOfType<GameObject>(true).Where(go => go.CompareTag(tag)).ToList();
+#else
+                //2019 and older doesn't, so we use a manual method.
+                results = FindGameObjectsWithTagIncludeDisabled(tag).ToList();
+#endif
+            }
+            else
+            {
+                //Just use the normal method if we don't want disabled gameObjects
+                results = GameObject.FindGameObjectsWithTag(tag).ToList();
             }
 
-            if (type == typeof(GameObject)) return gameObjectsWithTag;
-            if (type == typeof(Transform)) return gameObjectsWithTag.Select(go => go.transform).ToArray();
+            results = results.OrderBy(g => g.name).ToList();
+
+            if (type == typeof(GameObject)) return results.ToArray();
+            if (type == typeof(Transform)) return results.Select(g => g.transform).ToArray();
 
             List<Component> components = new List<Component>();
-            components.Capacity = Mathf.CeilToInt(gameObjectsWithTag.Length * 1.1f);
             
-            foreach(GameObject go in gameObjectsWithTag) {
+            foreach(GameObject go in results) {
                 components.AddRange(go.GetComponents(type));
             }
 
             return components.ToArray();
         }
 
-        private static bool IsGameObjectInScene(GameObject gameObject)
+        //Iterate over all root gameObjects and get all gameObjects with the tag, including disabled ones.
+        //This uses the same method in UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled but needs to be available outside of Editor since these attributes are runtime.
+        private static GameObject[] FindGameObjectsWithTagIncludeDisabled(string tag)
         {
-            //based on https://docs.unity3d.com/ScriptReference/Resources.FindObjectsOfTypeAll.html
-            if (gameObject == null) return false;
+            GameObject[] rootGos = SceneManager.GetActiveScene().GetRootGameObjects();
 
-            #if UNITY_EDITOR && !COMPILER_UDONSHARP
-                bool isPersistent = UnityEditor.EditorUtility.IsPersistent(gameObject.transform.root.gameObject); 
-                bool isHiddenOrUneditable = gameObject.hideFlags == HideFlags.NotEditable || gameObject.hideFlags == HideFlags.HideAndDontSave;
-                bool isInScene = !isPersistent && !isHiddenOrUneditable;
-                return isInScene;
-            #else
-                return true;
-            #endif
-        }
+            List<GameObject> objs = new List<GameObject>();
 
-        private static GameObject[] FindGameObjectsWithTagIncludingDisabled(string tag)
-        {
-            GameObject[] allGameObjects = Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[];
-            if (allGameObjects == null) return Array.Empty<GameObject>();
-
-            return allGameObjects
-                .Where(go => go.CompareTag(tag))
-                .Where(go => IsGameObjectInScene(go)) //Resources.FindObjectsOfTypeAll includes file assets and prefabs, so we need to filter them out.
-                .ToArray();
+            foreach (GameObject root in rootGos)
+            {
+                objs.AddRange(root.GetComponentsInChildren<Transform>(true).Select(t => t.gameObject).Where(go => go.CompareTag(tag)));
+            }
+            
+            return objs.ToArray();
         }
     }
     
