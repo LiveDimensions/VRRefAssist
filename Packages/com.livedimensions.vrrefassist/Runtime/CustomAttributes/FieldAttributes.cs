@@ -42,7 +42,12 @@ namespace VRRefAssist
         }
     }
 
-    public class GetComponents : GetComponent { }
+    public class GetComponents : GetComponent
+    {
+        public GetComponents(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+    }
 
     /// <summary>
     /// This will run GetComponentInChildren(type) on the object this is attached to and set the field to the result.
@@ -60,8 +65,13 @@ namespace VRRefAssist
             return uSharpBehaviour.GetComponentsInChildren(type, true);
         }
     }
-    
-    public class GetComponentsInChildren : GetComponentInChildren { }
+
+    public class GetComponentsInChildren : GetComponentInChildren
+    {
+        public GetComponentsInChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+    }
 
     /// <summary>
     /// This will run GetComponentInParent(type) on the object this is attached to and set the field to the result.
@@ -79,8 +89,13 @@ namespace VRRefAssist
             return uSharpBehaviour.GetComponentsInParent(type, true);
         }
     }
-    
-    public class GetComponentsInParent : GetComponentInParent { }
+
+    public class GetComponentsInParent : GetComponentInParent
+    {
+        public GetComponentsInParent(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+    }
 
     /// <summary>
     /// This is will run transform.parent.GetComponent(type) on the object this is attached to and set the field to the result.
@@ -98,8 +113,13 @@ namespace VRRefAssist
             return uSharpBehaviour.transform.parent == null ? Array.Empty<Component>() : uSharpBehaviour.transform.parent.GetComponents(type);
         }
     }
-    
-    public class GetComponentsInDirectParent : GetComponentInDirectParent { }
+
+    public class GetComponentsInDirectParent : GetComponentInDirectParent
+    {
+        public GetComponentsInDirectParent(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+    }
 
     /// <summary>
     /// This will run FindObjectsOfType(type) and set the field to the result, if the field is not an array it will use the first value.
@@ -145,7 +165,12 @@ namespace VRRefAssist
     /// <summary>
     /// Exactly the same as FindObjectOfType, as it already works with array fields.
     /// </summary>
-    public class FindObjectsOfType : FindObjectOfType { }
+    public class FindObjectsOfType : FindObjectOfType
+    {
+        public FindObjectsOfType(bool includeDisabled = true, bool dontOverride = false, bool suppressErrors = false) : base(includeDisabled, dontOverride, suppressErrors)
+        {
+        }
+    }
 
     /// <summary>
     /// This will run Find(searchName) and set the field to the result, it also works for type of GameObject.
