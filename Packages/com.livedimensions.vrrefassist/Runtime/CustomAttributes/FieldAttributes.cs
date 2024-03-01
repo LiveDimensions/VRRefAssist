@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 // ReSharper disable CoVariantArrayConversion
 
 namespace VRRefAssist
@@ -49,7 +50,7 @@ namespace VRRefAssist
     public class GetComponentInChildren : AutosetAttribute
     {
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
-        /// /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
         public GetComponentInChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
         {
         }
@@ -193,6 +194,88 @@ namespace VRRefAssist
             if (type == typeof(GameObject)) return new object[] {findInChildrenGo};
 
             return findInChildrenGo == null ? Array.Empty<Component>() : findInChildrenGo.GetComponents(type);
+        }
+    }
+
+    /// <summary>
+    /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
+    /// By default, this will include disabled gameObjects, but this can be changed with 'includeDisabledGameObjects'. Disabled *components* are always included.
+    /// </summary>
+    public class FindObjectWithTag : AutosetAttribute
+    {
+        public readonly string tag;
+        public bool includeDisabledGameObjects;
+
+        /// <param name="tag">The tag to search for</param>
+        /// <param name="includeDisabledGameObjects">Include disabled GameObjects?</param>
+        /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public FindObjectWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+            this.tag = tag;
+            this.includeDisabledGameObjects = includeDisabledGameObjects;
+        }
+
+        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, System.Type type)
+        {
+            GameObject[] gameObjectsWithTag = FindGameObjectsWithTagIncludingDisabled(tag); //GameObject.FindObjectsWithTag does not actually include disabled objects, so we use this instead.
+
+            //The order is undefined, so we'll sort by name to help make it consistent.
+            gameObjectsWithTag = gameObjectsWithTag
+                .OrderBy(go => go.transform.name)
+                .ToArray();
+
+            if (!includeDisabledGameObjects) {
+                gameObjectsWithTag = gameObjectsWithTag.Where(go => go.activeInHierarchy).ToArray();
+            }
+
+            if (type == typeof(GameObject)) return gameObjectsWithTag;
+            if (type == typeof(Transform)) return gameObjectsWithTag.Select(go => go.transform).ToArray();
+
+            List<Component> components = new List<Component>();
+            components.Capacity = Mathf.CeilToInt(gameObjectsWithTag.Length * 1.1f);
+            
+            foreach(GameObject go in gameObjectsWithTag) {
+                components.AddRange(go.GetComponents(type));
+            }
+
+            return components.ToArray();
+        }
+
+        private static bool IsGameObjectInScene(GameObject gameObject)
+        {
+            //based on https://docs.unity3d.com/ScriptReference/Resources.FindObjectsOfTypeAll.html
+            if (gameObject == null) return false;
+
+            #if UNITY_EDITOR && !COMPILER_UDONSHARP
+                bool isPersistent = UnityEditor.EditorUtility.IsPersistent(gameObject.transform.root.gameObject); 
+                bool isHiddenOrUneditable = gameObject.hideFlags == HideFlags.NotEditable || gameObject.hideFlags == HideFlags.HideAndDontSave;
+                bool isInScene = !isPersistent && !isHiddenOrUneditable;
+                return isInScene;
+            #else
+                return true;
+            #endif
+        }
+
+        private static GameObject[] FindGameObjectsWithTagIncludingDisabled(string tag)
+        {
+            GameObject[] allGameObjects = Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[];
+            if (allGameObjects == null) return Array.Empty<GameObject>();
+
+            return allGameObjects
+                .Where(go => go.CompareTag(tag))
+                .Where(go => IsGameObjectInScene(go)) //Resources.FindObjectsOfTypeAll includes file assets and prefabs, so we need to filter them out.
+                .ToArray();
+        }
+    }
+    
+    /// <summary>
+    /// This will run GameObject.FindGameObjectsWithTag(tag) and GetComponents(type) on each result. Also works for GameObjects and Transforms.
+    /// By default, this will include disabled gameObjects, but this can be changed with 'includeDisabledGameObjects'. Disabled *components* are always included.
+    /// </summary>
+    public class FindObjectsWithTag : FindObjectWithTag {
+        public FindObjectsWithTag(string tag, bool includeDisabledGameObjects = true, bool dontOverride = false, bool suppressErrors = false) : base(tag, includeDisabledGameObjects, dontOverride, suppressErrors)
+        {
         }
     }
 }

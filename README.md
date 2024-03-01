@@ -115,12 +115,29 @@ Will run `transform.parent.GetComponent(<Field Type>)` on it's UdonSharpBehaviou
 ### FindObjectOfType
 `[FindObjectOfType]`
 
-Will run `FindObjectOfType(<Field Type>)` on it's UdonSharpBehaviour to set that reference. Optionally you can specify if you want to include disabled GameObjects when running the method. **The default value is true for includeDisabled.**
+Will run `FindObjectOfType(<Field Type>)` on it's UdonSharpBehaviour to set that reference. Optionally, you can specify if you want to include disabled GameObjects when running the method. **The default value is true for includeDisabled.**
 #### Example
 ```cs
 [SerializedField, FindObjectOfType] private Renderer myRenderer;
 or
 [SerializedField, FindObjectOfType(false)] private Renderer myRenderer; //Will not Find disabled Renderers
+```
+
+### FindObjectWithTag
+`[FindObjectWithTag("Tag")]`
+
+Will run `GameObject.FindGameObjectWithTag(<Tag>).GetComponent(<Type>)` on it's UdonSharpBehaviour to set that reference. If the field is an array, GetComponents is used to get all valid components on a GameObject. Optionally, you can specify if you want to include disabled GameObjects when running the method. **By default, it will include disabled GameObjects.** This will always include disabled *components.*
+
+#### Example
+```cs
+//Will grab all Transforms on each GameObject with the tag "PossibleItemSpawnPoint".
+[SerializedField, FindObjectsWithTag("PossibleItemSpawnPoint")] private Transform[] allPossibleItemSpawnPoints;
+or
+//Will grab all UdonBehaviours on each GameObject with the tag "PuzzleUdons", even if multiple UdonBehaviours are on one object or if the GameObject or UdonBehaviour is disabled.
+[SerializedField, FindObjectsWithTag("PuzzleUdons")] private UdonBehaviour[] allPuzzleUdons;
+or
+//The same as above, but will exclude disabled GameObjects.
+[SerializedField, FindObjectsWithTag("PuzzleUdons", false)] private UdonBehaviour[] allPuzzleUdons;
 ```
 
 ### Find
