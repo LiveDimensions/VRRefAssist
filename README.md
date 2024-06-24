@@ -9,14 +9,19 @@ A set of custom attributes for UdonSharp to automate usually time consuming refe
 - Run code any time a build is requested
 
 ## How to install
+### Unity Package Manager
 In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: 
 
 <https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist>
 
-Or download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
+### Unity Package
+Download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
+
+### VPM
+https://livedimensions.github.io/LiveDimensions-VRC-Packages/
 
 
-Requirements:
+### Requirements:
 - UdonSharp
 - Git (to install through Package Manager)
 
