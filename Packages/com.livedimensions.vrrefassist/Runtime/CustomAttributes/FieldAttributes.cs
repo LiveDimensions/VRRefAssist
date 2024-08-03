@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UdonSharp;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace VRRefAssist
             this.dontOverride = dontOverride;
             this.suppressErrors = suppressErrors;
         }
-        public abstract object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type);
+        public abstract object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type);
     }
     
     /// <summary>
@@ -36,9 +35,9 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
-            return uSharpBehaviour.GetComponents(type);
+            return monoBehaviour.GetComponents(type);
         }
     }
 
@@ -60,9 +59,9 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
-            return uSharpBehaviour.GetComponentsInChildren(type, true);
+            return monoBehaviour.GetComponentsInChildren(type, true);
         }
     }
 
@@ -84,9 +83,9 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
-            return uSharpBehaviour.GetComponentsInParent(type, true);
+            return monoBehaviour.GetComponentsInParent(type, true);
         }
     }
 
@@ -108,9 +107,9 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
-            return uSharpBehaviour.transform.parent == null ? Array.Empty<Component>() : uSharpBehaviour.transform.parent.GetComponents(type);
+            return monoBehaviour.transform.parent == null ? Array.Empty<Component>() : monoBehaviour.transform.parent.GetComponents(type);
         }
     }
 
@@ -136,7 +135,7 @@ namespace VRRefAssist
             this.includeDisabled = includeDisabled;
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
             #if UNITY_2020_1_OR_NEWER
             return UnityEngine.Object.FindObjectsOfType(type, includeDisabled);
@@ -187,7 +186,7 @@ namespace VRRefAssist
             this.searchName = searchName;
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
             GameObject findGo = GameObject.Find(searchName);
 
@@ -212,9 +211,9 @@ namespace VRRefAssist
             this.searchName = searchName;
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
         {
-            GameObject findInChildrenGo = uSharpBehaviour.transform.Find(searchName).gameObject;
+            GameObject findInChildrenGo = monoBehaviour.transform.Find(searchName).gameObject;
 
             if (type == typeof(GameObject)) return new object[] {findInChildrenGo};
 
@@ -241,7 +240,7 @@ namespace VRRefAssist
             this.includeDisabledGameObjects = includeDisabledGameObjects;
         }
 
-        public override object[] GetObjectsLogic(UdonSharpBehaviour uSharpBehaviour, System.Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, System.Type type)
         {
             List<GameObject> results;
             

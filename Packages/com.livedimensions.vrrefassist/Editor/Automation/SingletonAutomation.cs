@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UdonSharp;
 using UnityEditor;
 using UnityEngine;
 using VRRefAssist.Editor.Extensions;
@@ -18,27 +17,27 @@ namespace VRRefAssist.Editor.Automation
 
         static SingletonAutomation()
         {
-            //Find all classes that inherit from UdonSharpBehaviour
-            List<Type> uSharpInheritors = TypeCache.GetTypesDerivedFrom<UdonSharpBehaviour>().Where(t => !t.IsAbstract).ToList();
+            //Find all classes that inherit from MonoBehaviour
+            List<Type> monoInheritors = TypeCache.GetTypesDerivedFrom<MonoBehaviour>().Where(t => !t.IsAbstract).ToList();
 
             List<Type> singletonTypes = TypeCache.GetTypesWithAttribute<Singleton>().ToList();
 
             //Find all fields that use Singletons
-            foreach (Type uSharpInheritor in uSharpInheritors)
+            foreach (Type monoInheritor in monoInheritors)
             {
-                FieldInfo[] fields = FieldAutomation.GetAllFields(uSharpInheritor).ToArray();
+                FieldInfo[] fields = FieldAutomation.GetAllFields(monoInheritor).ToArray();
                 foreach (FieldInfo field in fields)
                 {
                     if (!singletonTypes.Contains(field.FieldType)) continue;
                     if (!field.IsSerialized()) continue;
 
-                    if (!typesUsingSingletons.ContainsKey(uSharpInheritor))
+                    if (!typesUsingSingletons.ContainsKey(monoInheritor))
                     {
-                        typesUsingSingletons.Add(uSharpInheritor, new List<FieldInfo> { field });
+                        typesUsingSingletons.Add(monoInheritor, new List<FieldInfo> { field });
                     }
                     else
                     {
-                        typesUsingSingletons[uSharpInheritor].Add(field);
+                        typesUsingSingletons[monoInheritor].Add(field);
                     }
                 }
             }
@@ -61,26 +60,47 @@ namespace VRRefAssist.Editor.Automation
             }
         }
 
-        private static Dictionary<Type, UdonSharpBehaviour> sceneSingletonsDict = new Dictionary<Type, UdonSharpBehaviour>();
+        private static Dictionary<Type, MonoBehaviour> sceneSingletonsDict = new Dictionary<Type, MonoBehaviour>();
 
         private static void RefreshSingletonsInScene()
         {
+            var types = TypeCache.GetTypesWithAttribute<Singleton>();
+            
+            List<MonoBehaviour> sceneMonoSingletons = new List<MonoBehaviour>();
+            
+            foreach (var type in types)
+            {
+                #if UNITY_2020_1_OR_NEWER
+                MonoBehaviour mono = UnityEngine.Object.FindObjectOfType(type, true) as MonoBehaviour;
+                #else
+                MonoBehaviour mono = UnityEditorExtensions.FindObjectOfTypeIncludeDisabled(type) as MonoBehaviour;
+                #endif
+                
+                if (mono != null)
+                {
+                    sceneMonoSingletons.Add(mono);
+                }
+            }
+            
+            /*
             #if UNITY_2020_1_OR_NEWER
-            List<UdonSharpBehaviour> sceneUdonSingletons = UnityEngine.Object.FindObjectsOfType<UdonSharpBehaviour>(true).Where(x => x.GetType().GetCustomAttribute<Singleton>() != null).ToList();
+            List<MonoBehaviour> sceneMonoSingletons = UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true).Where(x => x != null && x.GetType().GetCustomAttribute<Singleton>() != null).ToList();
             #else
-            List<UdonSharpBehaviour> sceneUdonSingletons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<UdonSharpBehaviour>().Where(x => x.GetType().GetCustomAttribute<Singleton>() != null).ToList();
+            List<MonoBehaviour> sceneMonoSingletons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled<MonoBehaviour>().Where(x => x != null && x.GetType().GetCustomAttribute<Singleton>() != null).ToList();
             #endif
+            */
 
-            var repeatedSingletons = sceneUdonSingletons.GroupBy(u => u.GetType()).Where(r => r.Count() > 1);
+            var repeatedSingletons = sceneMonoSingletons.GroupBy(u => u.GetType()).Where(r => r.Count() > 1);
 
             foreach (var repeatedSingleton in repeatedSingletons)
             {
                 VRRADebugger.LogError($"There are multiple instances ({repeatedSingleton.Count()}) of the same singleton in the scene! (" + repeatedSingleton.Key + ")");
             }
 
-            sceneSingletonsDict = sceneUdonSingletons.GroupBy(u => u.GetType()).Select(u => u.First()).ToDictionary(x => x.GetType(), x => x);
+            sceneSingletonsDict = sceneMonoSingletons.GroupBy(u => u.GetType()).Select(u => u.First()).ToDictionary(x => x.GetType(), x => x);
 
-            VRRADebugger.Log($"Singleton refresh found {sceneUdonSingletons.Count} singletons in the scene");
+            if(sceneMonoSingletons.Count > 0)
+                VRRADebugger.Log($"Singleton refresh found {sceneMonoSingletons.Count} singletons in the scene");
         }
 
         [MenuItem("VR RefAssist/Tools/Set Singleton References", priority = 201)]
@@ -124,26 +144,26 @@ namespace VRRefAssist.Editor.Automation
 
                 count++;
 
-                //When getting the udons, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
+                //When getting the monos, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
 #if UNITY_2020_1_OR_NEWER
-                List<UdonSharpBehaviour> udons = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
+                List<MonoBehaviour> monos = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();
 #else
-                List<UdonSharpBehaviour> udons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
+                List<MonoBehaviour> monos = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();
 #endif
 
                 FieldInfo[] fields = typeUsingSingleton.Value.ToArray();
 
-                foreach (var sceneUdon in udons)
+                foreach (var sceneMono in monos)
                 {
                     foreach (var field in fields)
                     {
                         if (!sceneSingletonsDict.ContainsKey(field.FieldType))
                         {
-                            VRRADebugger.LogError($"Failed to set singleton \"{field.FieldType.Name}\" in {sceneUdon.GetType().Name} ({sceneUdon.name}), because the singleton was not found in the scene!", sceneUdon.gameObject);
+                            VRRADebugger.LogError($"Failed to set singleton \"{field.FieldType.Name}\" in {sceneMono.GetType().Name} ({sceneMono.name}), because the singleton was not found in the scene!", sceneMono.gameObject);
 
                             if (showPopupWhenFieldAutomationFailed)
                             {
-                                bool cancel = EditorUtility.DisplayDialog("Failed to set Singleton reference", $"Failed to set singleton \"{field.FieldType.Name}\" in {sceneUdon.GetType().Name} ({sceneUdon.name}), because the singleton was not found in the scene!\nDo you want to cancel the build?", "Cancel", "Continue");
+                                bool cancel = EditorUtility.DisplayDialog("Failed to set Singleton reference", $"Failed to set singleton \"{field.FieldType.Name}\" in {sceneMono.GetType().Name} ({sceneMono.name}), because the singleton was not found in the scene!\nDo you want to cancel the build?", "Cancel", "Continue");
                                 if (cancel)
                                 {
                                     cancelBuild = true;
@@ -156,14 +176,15 @@ namespace VRRefAssist.Editor.Automation
 
                         resultCount++;
 
-                        field.SetValue(sceneUdon, sceneSingletonsDict[field.FieldType]);
+                        field.SetValue(sceneMono, sceneSingletonsDict[field.FieldType]);
                     }
 
-                    UnityEditorExtensions.FullSetDirty(sceneUdon);
+                    UnityEditorExtensions.FullSetDirty(sceneMono);
                 }
             }
 
-            VRRADebugger.Log($"Successfully set ({resultCount}) singleton references");
+            if(resultCount > 0)
+                VRRADebugger.Log($"Successfully set ({resultCount}) singleton references");
             EditorUtility.ClearProgressBar();
 
             return resultCount;

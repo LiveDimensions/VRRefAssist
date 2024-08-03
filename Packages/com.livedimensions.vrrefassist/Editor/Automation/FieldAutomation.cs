@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UdonSharp;
 using UnityEditor;
 using VRRefAssist.Editor.Extensions;
 
@@ -23,14 +22,14 @@ namespace VRRefAssist.Editor.Automation
             {
                 FieldAutomationTypeResults.Add(autosetAttribute, 0);
             }
+            
+            //Find all classes that inherit from MonoBehaviour
+            List<Type> monoInheritors = TypeCache.GetTypesDerivedFrom<MonoBehaviour>().Where(t => !t.IsAbstract).ToList();
 
-            //Find all classes that inherit from UdonSharpBehaviour
-            List<Type> uSharpInheritors = TypeCache.GetTypesDerivedFrom<UdonSharpBehaviour>().Where(t => !t.IsAbstract).ToList();
-
-            //Find all fields in all UdonSharpBehaviours that have an AutosetAttribute and cache them
-            foreach (var uSharpInheritor in uSharpInheritors)
+            //Find all fields in all MonoBehaviour that have an AutosetAttribute and cache them
+            foreach (var monoInheritor in monoInheritors)
             {
-                FieldInfo[] fields = GetAllFields(uSharpInheritor).ToArray();
+                FieldInfo[] fields = GetAllFields(monoInheritor).ToArray();
 
                 foreach (FieldInfo field in fields)
                 {
@@ -38,10 +37,10 @@ namespace VRRefAssist.Editor.Automation
                     if (customAttribute == null) continue;
                     if (!field.IsSerialized()) continue;
 
-                    if (cachedAutosetFields.ContainsKey(uSharpInheritor))
-                        cachedAutosetFields[uSharpInheritor].Add(field);
+                    if (cachedAutosetFields.ContainsKey(monoInheritor))
+                        cachedAutosetFields[monoInheritor].Add(field);
                     else
-                        cachedAutosetFields.Add(uSharpInheritor, new List<FieldInfo> { field });
+                        cachedAutosetFields.Add(monoInheritor, new List<FieldInfo> { field });
                 }
             }
         }
@@ -90,29 +89,29 @@ namespace VRRefAssist.Editor.Automation
 
                 count++;
 
-                //When getting the udons, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
+                //When getting the monos, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
 #if UNITY_2020_1_OR_NEWER
-                List<UdonSharpBehaviour> udons = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();          
+                List<MonoBehaviour> monos = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();          
 #else
-                List<UdonSharpBehaviour> udons = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (UdonSharpBehaviour)x).ToList();
+                List<MonoBehaviour> monos = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();
 #endif
 
                 FieldInfo[] fields = cachedValuePair.Value.ToArray();
 
-                foreach (var sceneUdon in udons)
+                foreach (var sceneMono in monos)
                 {
                     foreach (var field in fields)
                     {
                         AutosetAttribute customAttribute = field.GetCustomAttribute<AutosetAttribute>();
 
-                        if (customAttribute.dontOverride && field.GetValue(sceneUdon) != null)
+                        if (customAttribute.dontOverride && field.GetValue(sceneMono) != null)
                         {
                             continue;
                         }
 
                         bool isArray = field.FieldType.IsArray;
 
-                        object[] components = customAttribute.GetObjectsLogic(sceneUdon, isArray ? field.FieldType.GetElementType() : field.FieldType);
+                        object[] components = customAttribute.GetObjectsLogic(sceneMono, isArray ? field.FieldType.GetElementType() : field.FieldType);
 
                         bool failToSet;
 
@@ -130,13 +129,13 @@ namespace VRRefAssist.Editor.Automation
                             //Don't log error if suppressErrors is true
                             if (!customAttribute.suppressErrors)
                             {
-                                VRRADebugger.LogError($"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneUdon.GetType()}) {sceneUdon.name}", sceneUdon);
+                                VRRADebugger.LogError($"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneMono.GetType()}) {sceneMono.name}", sceneMono);
                             }
 
                             if (showPopupWhenFieldAutomationFailed)
                             {
                                 bool cancel = EditorUtility.DisplayDialog("Failed Field Automation...",
-                                    $"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneUdon.GetType()}) {sceneUdon.name}\nDo you want to cancel the build?",
+                                    $"Failed to set \"[{customAttribute}] {field.Name}\" on ({sceneMono.GetType()}) {sceneMono.name}\nDo you want to cancel the build?",
                                     "Cancel", "Continue");
 
                                 if (cancel)
@@ -165,7 +164,7 @@ namespace VRRefAssist.Editor.Automation
                             obj = components.FirstOrDefault();
                         }
 
-                        field.SetValue(sceneUdon, obj);
+                        field.SetValue(sceneMono, obj);
 
                         Type customAttributeType = customAttribute.GetType();
 
@@ -175,7 +174,7 @@ namespace VRRefAssist.Editor.Automation
                             FieldAutomationTypeResults.Add(customAttributeType, 1);
                     }
 
-                    UnityEditorExtensions.FullSetDirty(sceneUdon);
+                    UnityEditorExtensions.FullSetDirty(sceneMono);
                 }
             }
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using UdonSharp;
 using UnityEditor;
 using UnityEngine;
+using VRRefAssist.Editor.Exceptions;
 using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
@@ -13,7 +13,7 @@ namespace VRRefAssist.Editor.Automation
     [InitializeOnLoad]
     public static class RunOnBuildMethods
     {
-        private static readonly Dictionary<Type, List<UdonSharpBehaviour>> uSharpTypeInstances = new Dictionary<Type, List<UdonSharpBehaviour>>();
+        private static readonly Dictionary<Type, List<MonoBehaviour>> monoTypeInstances = new Dictionary<Type, List<MonoBehaviour>>();
 
         public static List<RunOnBuildMethod> preFieldAutomationMethods = new List<RunOnBuildMethod>();
         public static List<RunOnBuildMethod> postFieldAutomationMethods = new List<RunOnBuildMethod>();
@@ -41,32 +41,32 @@ namespace VRRefAssist.Editor.Automation
             if (allMethods.ContainsKey(false))
                 instanceMethods = allMethods[false].Select(m => new InstanceRunOnBuildMethod(m)).ToList();
 
-            uSharpTypeInstances.Clear();
+            monoTypeInstances.Clear();
 
             foreach (var instanceMethod in instanceMethods)
             {
-                if (!instanceMethod.declaringType.IsSubclassOf(typeof(UdonSharpBehaviour)))
+                if (!instanceMethod.declaringType.IsSubclassOf(typeof(MonoBehaviour)))
                 {
-                    VRRADebugger.LogError($"RunOnBuild method {instanceMethod.MethodInfo.Name} in {instanceMethod.declaringType.Name} is not subclass of UdonSharpBehaviour!");
+                    VRRADebugger.LogError($"RunOnBuild method {instanceMethod.MethodInfo.Name} in {instanceMethod.declaringType.Name} is not subclass of MonoBehaviour!");
                     continue;
                 }
 
-                if (!uSharpTypeInstances.ContainsKey(instanceMethod.declaringType))
-                    uSharpTypeInstances.Add(instanceMethod.declaringType, new List<UdonSharpBehaviour>());
+                if (!monoTypeInstances.ContainsKey(instanceMethod.declaringType))
+                    monoTypeInstances.Add(instanceMethod.declaringType, new List<MonoBehaviour>());
                 
                 var inheritedTypes = TypeCache.GetTypesDerivedFrom(instanceMethod.declaringType).Where(t => !t.IsAbstract).ToList();
                 
                 foreach (var inheritedType in inheritedTypes)
                 {
-                    if (uSharpTypeInstances.ContainsKey(inheritedType)) continue;
+                    if (monoTypeInstances.ContainsKey(inheritedType)) continue;
                     
-                    uSharpTypeInstances.Add(inheritedType, new List<UdonSharpBehaviour>());
+                    monoTypeInstances.Add(inheritedType, new List<MonoBehaviour>());
                 }
             }
 
             var staticAndInstanceMethods = staticMethods.OfType<RunOnBuildMethod>().Concat(instanceMethods).ToList();
 
-            //Split into pre and post field automation methods (execution order <= 1000 is pre, > 1000 is post)
+            //Split into pre- and post-field automation methods (execution order <= 1000 is pre, > 1000 is post)
             var preAndPostSplit = staticAndInstanceMethods.GroupBy(m => m.attribute.executionOrder <= 1000).ToDictionary(x => x.Key, z => z.ToList());
 
             if (preAndPostSplit.TryGetValue(true, out var preFieldMethods))
@@ -82,24 +82,24 @@ namespace VRRefAssist.Editor.Automation
             refreshingOnBuildMethods = false;
         }
 
-        public static void CacheUSharpInstances()
+        public static void CacheMonoInstances()
         {
             if (refreshingOnBuildMethods)
             {
-                VRRADebugger.LogError("Cannot cache UdonSharp instances while refreshing RunOnBuild methods!");
+                VRRADebugger.LogError("Cannot cache MonoBehaviour instances while refreshing RunOnBuild methods!");
                 return;
             }
 
-            foreach (var uSharpType in uSharpTypeInstances.Keys)
+            foreach (var monoType in monoTypeInstances.Keys)
             {
 #if UNITY_2020_1_OR_NEWER
-                UdonSharpBehaviour[] uSharpInstances = UnityEngine.Object.FindObjectsOfType(uSharpType, true).Where(x => x.GetType() == uSharpType).Select(x => (UdonSharpBehaviour)x).ToArray();
+                MonoBehaviour[] monoInstances = UnityEngine.Object.FindObjectsOfType(monoType, true).Where(x => x.GetType() == monoType).Select(x => (MonoBehaviour)x).ToArray();
 #else
-                UdonSharpBehaviour[] uSharpInstances = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(uSharpType).Where(x => x.GetType() == uSharpType).Select(x => (UdonSharpBehaviour)x).ToArray();
+                MonoBehaviour[] monoInstances = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(monoType).Where(x => x.GetType() == monoType).Select(x => (MonoBehaviour)x).ToArray();
 #endif
 
-                uSharpTypeInstances[uSharpType].Clear();
-                uSharpTypeInstances[uSharpType].AddRange(uSharpInstances);
+                monoTypeInstances[monoType].Clear();
+                monoTypeInstances[monoType].AddRange(monoInstances);
             }
         }
 
@@ -122,6 +122,21 @@ namespace VRRefAssist.Editor.Automation
                 try
                 {
                     Invoke();
+                }
+                catch (TargetInvocationException  e)
+                {
+                    if (e.InnerException is OnBuildException buildException)
+                    {
+                        exception = buildException;
+                    
+                        return false;   
+                    }
+
+                    Debug.LogException(e);
+
+                    exception = e;
+
+                    return false;
                 }
                 catch (Exception e)
                 {
@@ -162,7 +177,7 @@ namespace VRRefAssist.Editor.Automation
 
                 foreach (var type in allTypesWithMethod)
                 {
-                    if (!uSharpTypeInstances.TryGetValue(type, out var instances))
+                    if (!monoTypeInstances.TryGetValue(type, out var instances))
                     {
                         return;
                     }
