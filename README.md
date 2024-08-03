@@ -1,45 +1,55 @@
 # VR RefAssist
-A set of custom attributes for UdonSharp to automate usually time consuming references and repetitive tasks.
+A set of custom attributes for Unity to automate usually time consuming references and repetitive tasks.
 
 <img src="https://user-images.githubusercontent.com/26588846/229404067-6b437274-e2f3-48fb-9959-5d53c817715f.png" width="600">
 
 ## Features
 - Auto-set Singleton references
-- Auto-set usually tedious references on UdonSharpBehaviours
+- Auto-set usually tedious references on MonoBehaviours
 - Run code any time a build is requested
+- All from within editor mode, no runtime code required or executed!
 
 ## How to install
+### Unity Package Manager
 In your Unity project, go to `Window > Package Manager` then click the top left `+`, click on `Add package from git URL` and paste this link: 
 
 <https://github.com/LiveDimensions/VRRefAssist.git?path=/Packages/com.livedimensions.vrrefassist>
 
-Or download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
+### Unity Package
+Download the latest package from the [latest release](https://github.com/LiveDimensions/VRRefAssist/releases/latest)
 
+### VRChat Package Manager
+<https://livedimensions.github.io/VRRefAssist/>
 
-Requirements:
-- UdonSharp
-- Git (to install through Package Manager)
+## Requirements:
+- Git (to install through UnityPackage Manager)
 
-## Note
-Some code is still WIP, but most of the desired functionality is already working.
-One big note would be that at this moment there is no 'customization' options for which automations are run **per scene** this means that your console might get spammed a little bit if you change scenes and don't have the same RunOnBuild scene setup. Also, by default all field and method automations will execute when building but also when entering play mode, if you wish to change this go to `VR RefAssist > Settings`
+## Notes
+By default all field and method automations (RunOnBuild and FieldAutomation) will execute when building **but also when entering play mode**, if you wish to change this go to `VR RefAssist > Settings`.
+
+At this moment there is no 'customization' options for which automations are run **per scene** this means that your console might get spammed a little bit if you change scenes and don't have the same RunOnBuild scene setup, you can of course manually detect which scene is active and go from there. 
+
+VR RefAssist highly leans towards "baking" references within a scene before building/entering play mode, this means there's no need to use `Find` methods on `Awake()` for whatever scripts you have in your scene. This of course does not work with cross-scene references. If you are instantiating prefabs however, you can use an in-scene (inactive in hierarchy) instance of that prefab so that references are populated and instantiate that instead. Here's an example of how that looks in the hierarchy (Pre-warmed Prefabs is disabled, Enemy is enabled).
+
+![image](https://github.com/user-attachments/assets/9a598539-9d63-47a8-b5dd-20f46bc876df)
+
 
 ## Singleton References
 `[Singleton]`
 
-This class attribute marks an UdonSharpBehaviour as a singleton and means that any other classes with serialized references to the singleton class will be automatically set (if it is present in the scene).
+This class attribute marks a MonoBehaviour as a singleton and means that any other classes with serialized references to the singleton class will be automatically set (if it is present in the scene).
 
 #### Example
 ```cs
 [Singleton]
-public class MySingleton : UdonSharpBehaviour
+public class MySingleton : MonoBehaviour
 {
 
 }
 
-public class TestClass : UdonSharpBehaviour
+public class TestClass : MonoBehaviour
 {
-    [SerializedField] private MySingleton mySingleton; //This reference will be automatically set by VR RefAssist
+    [SerializeField] private MySingleton mySingleton; //This reference will be automatically set by VR RefAssist
 }
 ```
 
@@ -53,14 +63,14 @@ There is also an optional `executionOrder` parameter, values higher than `1000` 
 
 #### Example
 ```cs
-public class BuildDate : UdonSharpBehaviour
+public class BuildDate : MonoBehaviour
 {
     //VR RefAssist field attributes are set before any RunOnBuild methods are executed.
-    [SerializedField, GetComponent] public TextMeshPro buildDateText;
+    [SerializeField, GetComponent] public TextMeshPro buildDateText;
 
 
     //UpdateBuildText will be run when a build is requested and will set the TextMeshPro text to the build date. 
-    #if UNITY_EDITOR && !COMPILER_UDONSHARP
+    #if UNITY_EDITOR && !COMPILER_UDONSHARP //Optional
     [RunOnBuild]
     private void UpdateBuildText()
     {
@@ -79,90 +89,90 @@ All fields have an optional bool parameter `dontOverride` which means that if a 
 ### GetComponent
 `[GetComponent]`
 
-Will run `GetComponent(<Field Type>)` on it's UdonSharpBehaviour to set that reference.
+Will run `GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference.
 #### Example
 ```cs
-[SerializedField, GetComponent] private Renderer myRenderer;
+[SerializeField, GetComponent] private Renderer myRenderer;
 ```
 
 ### GetComponentInChildren
 `[GetComponentInChildren]`
 
-Will run `GetComponentInChildren(<Field Type>)` on it's UdonSharpBehaviour to set that reference.
+Will run `GetComponentInChildren(<Field Type>)` on it's MonoBehaviour to set that reference.
 #### Example
 ```cs
-[SerializedField, GetComponentInChildren] private Renderer myRenderer;
+[SerializeField, GetComponentInChildren] private Renderer myRenderer;
 ```
 
 ### GetComponentInParent
 `[GetComponentInParent]`
 
-Will run `GetComponentInParent(<Field Type>)` on it's UdonSharpBehaviour to set that reference.
+Will run `GetComponentInParent(<Field Type>)` on it's MonoBehaviour to set that reference.
 #### Example
 ```cs
-[SerializedField, GetComponentInParent] private Renderer myRenderer;
+[SerializeField, GetComponentInParent] private Renderer myRenderer;
 ```
 
 ### GetComponentInDirectParent
 `[GetComponentInDirectParent]`
 
-Will run `transform.parent.GetComponent(<Field Type>)` on it's UdonSharpBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method, but it is still useful in some cases.
+Will run `transform.parent.GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method, but it is still useful in some cases.
 #### Example
 ```cs
-[SerializedField, GetComponentInDirectParent] private Renderer myRenderer;
+[SerializeField, GetComponentInDirectParent] private Renderer myRenderer;
 ```
 
 ### FindObjectOfType
 `[FindObjectOfType]`
 
-Will run `FindObjectOfType(<Field Type>)` on it's UdonSharpBehaviour to set that reference. Optionally, you can specify if you want to include disabled GameObjects when running the method. **The default value is true for includeDisabled.**
+Will run `FindObjectOfType(<Field Type>)` on it's MonoBehaviour to set that reference. Optionally, you can specify if you want to include disabled GameObjects when running the method. **The default value is true for includeDisabled.**
 #### Example
 ```cs
-[SerializedField, FindObjectOfType] private Renderer myRenderer;
+[SerializeField, FindObjectOfType] private Renderer myRenderer;
 or
-[SerializedField, FindObjectOfType(false)] private Renderer myRenderer; //Will not Find disabled Renderers
+[SerializeField, FindObjectOfType(false)] private Renderer myRenderer; //Will not Find disabled Renderers
 ```
 
 ### FindObjectWithTag
 `[FindObjectWithTag("Tag")]`
 
-Will run `GameObject.FindGameObjectWithTag(<Tag>).GetComponent(<Type>)` on it's UdonSharpBehaviour to set that reference. If the field is an array, GetComponents is used to get all valid components on a GameObject. Optionally, you can specify if you want to include disabled GameObjects when running the method. **By default, it will include disabled GameObjects.** This will always include disabled *components.*
+Will run `GameObject.FindGameObjectWithTag(<Tag>).GetComponent(<Type>)` on it's MonoBehaviour to set that reference. If the field is an array, GetComponents is used to get all valid components on a GameObject. Optionally, you can specify if you want to include disabled GameObjects when running the method. **By default, it will include disabled GameObjects.** This will always include disabled *components.*
 
 #### Example
 ```cs
 //Will grab all Transforms on each GameObject with the tag "PossibleItemSpawnPoint".
-[SerializedField, FindObjectsWithTag("PossibleItemSpawnPoint")] private Transform[] allPossibleItemSpawnPoints;
+[SerializeField, FindObjectsWithTag("PossibleItemSpawnPoint")] private Transform[] allPossibleItemSpawnPoints;
 or
 //Will grab all UdonBehaviours on each GameObject with the tag "PuzzleUdons", even if multiple UdonBehaviours are on one object or if the GameObject or UdonBehaviour is disabled.
-[SerializedField, FindObjectsWithTag("PuzzleUdons")] private UdonBehaviour[] allPuzzleUdons;
+[SerializeField, FindObjectsWithTag("PuzzleUdons")] private UdonBehaviour[] allPuzzleUdons;
 or
 //The same as above, but will exclude disabled GameObjects.
-[SerializedField, FindObjectsWithTag("PuzzleUdons", false)] private UdonBehaviour[] allPuzzleUdons;
+[SerializeField, FindObjectsWithTag("PuzzleUdons", false)] private UdonBehaviour[] allPuzzleUdons;
 ```
 
 ### Find
 `[Find("Search")]`
 
-Will run `Find("Search").GetComponent(<Field Type>)` on it's UdonSharpBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `Find`.
+Will run `Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `Find`.
 
 **NOTE:** `Find` does not currently support arrays.
 
 #### Example
 ```cs
-[SerializedField, Find("My Renderer")] private Renderer myRenderer;
+[SerializeField, Find("My Renderer")] private Renderer myRenderer;
 ```
 
 
 ### FindInChildren
 `[FindInChildren("Search")]`
 
-Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's UdonSharpBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `transform.Find`.
+Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `transform.Find`.
 
 **NOTE:** `FindInChildren` does not currently support arrays.
 
 #### Example
 ```cs
-[SerializedField, Find("My Renderer")] private Renderer myRenderer;
+[SerializeField, Find("My Renderer")] private Renderer myRenderer;
 ```
 
 ## Miscellaneous Editor Methods
