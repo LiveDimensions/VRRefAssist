@@ -1,8 +1,13 @@
 ﻿using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+#if VRC_SDK_VRCSDK3
 using VRC.SDKBase.Editor.BuildPipeline;
+#endif
 
 namespace VRRefAssist.Editor.Automation
 {
+    #if VRC_SDK_VRCSDK3
     internal class VRCBuildCallback : IVRCSDKBuildRequestedCallback
     {
         public int callbackOrder => -1;
@@ -14,6 +19,20 @@ namespace VRRefAssist.Editor.Automation
             return BuildOrPlayModeCallback.ExecuteAutomation(true);
         }
     }
+    #else
+    internal class UnityBuildCallback : IPreprocessBuildWithReport
+    {
+        public int callbackOrder => -1;
+
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            if (!BuildOrPlayModeCallback.ExecuteAutomation(true))
+            {
+                throw new BuildFailedException("Stopping build as requested by VRRefAssist!");
+            }
+        }
+    }
+    #endif
 
     [InitializeOnLoad]
     public static class BuildOrPlayModeCallback
@@ -25,9 +44,14 @@ namespace VRRefAssist.Editor.Automation
 
         private static void OnPlayModeChanged(PlayModeStateChange state)
         {
+            VRRADebugger.Log($"Play mode state changed: {state}");
             if (state != PlayModeStateChange.ExitingEditMode) return;
 
-            ExecuteAutomation(false);
+            if(!ExecuteAutomation(true))
+            {
+                VRRADebugger.LogError("Automation failed, stopping play mode!");
+                EditorApplication.isPlaying = false;
+            }
         }
 
         public static bool ExecuteAutomation(bool buildRequested)
@@ -37,7 +61,7 @@ namespace VRRefAssist.Editor.Automation
             //
             if (buildRequested)
             {
-                RunOnBuildMethods.CacheUSharpInstances();
+                RunOnBuildMethods.CacheMonoInstances();
 
                 RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation, out bool cancelBuild);
                 if (cancelBuild)
@@ -74,7 +98,7 @@ namespace VRRefAssist.Editor.Automation
 
             if (executeRunOnBuildMethodsWhenEnteringPlayMode)
             {
-                RunOnBuildMethods.CacheUSharpInstances();
+                RunOnBuildMethods.CacheMonoInstances();
                 RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation);
             }
 
