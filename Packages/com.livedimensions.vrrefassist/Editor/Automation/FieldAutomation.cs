@@ -115,13 +115,16 @@ namespace VRRefAssist.Editor.Automation
 
                         bool failToSet;
 
-                        if (isArray)
+                        if (customAttribute.failIfNull)
                         {
-                            failToSet = components.Length == 0;
-                        }
-                        else
-                        {
-                            failToSet = components.FirstOrDefault() == null;
+                            if (isArray)
+                            {
+                                failToSet = components.Length == 0;
+                            }
+                            else
+                            {
+                                failToSet = components.FirstOrDefault() == null;
+                            }
                         }
 
                         if (failToSet)
