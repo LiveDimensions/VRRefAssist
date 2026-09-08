@@ -1,8 +1,12 @@
+
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Linq;
+
 // ReSharper disable CoVariantArrayConversion
 
 namespace VRRefAssist
@@ -21,7 +25,7 @@ namespace VRRefAssist
             this.dontOverride = dontOverride;
             this.suppressErrors = suppressErrors;
         }
-        public abstract object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type);
+        public abstract object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field);
     }
     
     /// <summary>
@@ -35,7 +39,7 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             return monoBehaviour.GetComponents(type);
         }
@@ -59,7 +63,7 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             return monoBehaviour.GetComponentsInChildren(type, true);
         }
@@ -83,7 +87,7 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             return monoBehaviour.GetComponentsInParent(type, true);
         }
@@ -107,7 +111,7 @@ namespace VRRefAssist
         {
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             return monoBehaviour.transform.parent == null ? Array.Empty<Component>() : monoBehaviour.transform.parent.GetComponents(type);
         }
@@ -135,7 +139,7 @@ namespace VRRefAssist
             this.includeDisabled = includeDisabled;
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             #if UNITY_2020_1_OR_NEWER
             return UnityEngine.Object.FindObjectsOfType(type, includeDisabled);
@@ -186,7 +190,7 @@ namespace VRRefAssist
             this.searchName = searchName;
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             GameObject findGo = GameObject.Find(searchName);
 
@@ -211,7 +215,7 @@ namespace VRRefAssist
             this.searchName = searchName;
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             GameObject findInChildrenGo = monoBehaviour.transform.Find(searchName).gameObject;
 
@@ -240,7 +244,7 @@ namespace VRRefAssist
             this.includeDisabledGameObjects = includeDisabledGameObjects;
         }
 
-        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, System.Type type)
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
             List<GameObject> results;
             
