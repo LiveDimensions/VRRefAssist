@@ -306,4 +306,20 @@ namespace VRRefAssist
         {
         }
     }
+
+    public class DistinctNotNull : AutosetAttribute
+    {
+        public DistinctNotNull() : base(false, true, false)
+        {
+        }
+        
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
+        {
+            if (!field.FieldType.IsArray) throw new ArgumentException($"Field '{field.Name}' must be an array!");
+            
+            var values = (object[])field.GetValue(monoBehaviour);
+            if (values == null) return Array.Empty<object>();
+            return values.Distinct().Where(x => !x.Equals(null)).ToArray();
+        }
+    }
 }
