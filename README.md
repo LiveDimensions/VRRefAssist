@@ -89,7 +89,7 @@ All fields have an optional bool parameter `dontOverride` which means that if a 
 ### GetComponent
 `[GetComponent]`
 
-Will run `GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference.
+Will run `GetComponent(<Field Type>)` on its MonoBehaviour to set that reference.
 #### Example
 ```cs
 [SerializeField, GetComponent] private Renderer myRenderer;
@@ -98,7 +98,7 @@ Will run `GetComponent(<Field Type>)` on it's MonoBehaviour to set that referenc
 ### GetComponentInChildren
 `[GetComponentInChildren]`
 
-Will run `GetComponentInChildren(<Field Type>)` on it's MonoBehaviour to set that reference.
+Will run `GetComponentInChildren(<Field Type>)` on its MonoBehaviour to set that reference.
 #### Example
 ```cs
 [SerializeField, GetComponentInChildren] private Renderer myRenderer;
@@ -107,7 +107,7 @@ Will run `GetComponentInChildren(<Field Type>)` on it's MonoBehaviour to set tha
 ### GetComponentInParent
 `[GetComponentInParent]`
 
-Will run `GetComponentInParent(<Field Type>)` on it's MonoBehaviour to set that reference.
+Will run `GetComponentInParent(<Field Type>)` on its MonoBehaviour to set that reference.
 #### Example
 ```cs
 [SerializeField, GetComponentInParent] private Renderer myRenderer;
@@ -116,7 +116,7 @@ Will run `GetComponentInParent(<Field Type>)` on it's MonoBehaviour to set that 
 ### GetComponentInDirectParent
 `[GetComponentInDirectParent]`
 
-Will run `transform.parent.GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method, but it is still useful in some cases.
+Will run `transform.parent.GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method, but it is still useful in some cases.
 #### Example
 ```cs
 [SerializeField, GetComponentInDirectParent] private Renderer myRenderer;
@@ -125,7 +125,7 @@ Will run `transform.parent.GetComponent(<Field Type>)` on it's MonoBehaviour to 
 ### FindObjectOfType
 `[FindObjectOfType]`
 
-Will run `FindObjectOfType(<Field Type>)` on it's MonoBehaviour to set that reference. Optionally, you can specify if you want to include disabled GameObjects when running the method. **The default value is true for includeDisabled.**
+Will run `FindObjectOfType(<Field Type>)` on its MonoBehaviour to set that reference. Optionally, you can specify if you want to include disabled GameObjects when running the method. **The default value is true for includeDisabled.**
 #### Example
 ```cs
 [SerializeField, FindObjectOfType] private Renderer myRenderer;
@@ -136,7 +136,7 @@ or
 ### FindObjectWithTag
 `[FindObjectWithTag("Tag")]`
 
-Will run `GameObject.FindGameObjectWithTag(<Tag>).GetComponent(<Type>)` on it's MonoBehaviour to set that reference. If the field is an array, GetComponents is used to get all valid components on a GameObject. Optionally, you can specify if you want to include disabled GameObjects when running the method. **By default, it will include disabled GameObjects.** This will always include disabled *components.*
+Will run `GameObject.FindGameObjectWithTag(<Tag>).GetComponent(<Type>)` on its MonoBehaviour to set that reference. If the field is an array, GetComponents is used to get all valid components on a GameObject. Optionally, you can specify if you want to include disabled GameObjects when running the method. **By default, it will include disabled GameObjects.** This will always include disabled *components.*
 
 #### Example
 ```cs
@@ -153,7 +153,7 @@ or
 ### Find
 `[Find("Search")]`
 
-Will run `Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `Find`.
+Will run `Find("Search").GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `Find`.
 
 **NOTE:** `Find` does not currently support arrays.
 
@@ -166,7 +166,7 @@ Will run `Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to se
 ### FindInChildren
 `[FindInChildren("Search")]`
 
-Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `transform.Find`.
+Will run `transform.Find("Search").GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method as it runs `GetComponent` after using `transform.Find`.
 
 **NOTE:** `FindInChildren` does not currently support arrays.
 
@@ -175,9 +175,20 @@ Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's MonoBehav
 [SerializeField, Find("My Renderer")] private Renderer myRenderer;
 ```
 
+### DistinctNotNull
+`[DistinctNotNull]`
+
+Will run `values = values.Distinct().Where(x => !x.Equals(null)).ToArray()` on the field with the attribute.
+
+#### Example
+```cs
+[SerializeField, DistinctNotNull] private Renderer[] myRenderers;
+```
+
+
 ## Miscellaneous Editor Methods
 ### FindObjectOfTypeIncludeDisabled
-These methods are to be used in editor scripting only. These were implemented because as of Unity 2019.4.31f1 (Current VRChat version) Unitys' FindObjectOfType method does not include disabled GameObjects.
+These methods were used in editor scripting only. These were implemented because 2019.4.31f1 Unity's `FindObjectOfType` method did not include an optional bool to find disabled GameObjects.
 
 - `UnityEditorExtensions.FindObjectOfTypeIncludeDisabled<T>()`
 - `UnityEditorExtensions.FindObjectOfTypeIncludeDisabled(Type type)`

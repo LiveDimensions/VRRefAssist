@@ -111,17 +111,20 @@ namespace VRRefAssist.Editor.Automation
 
                         bool isArray = field.FieldType.IsArray;
 
-                        object[] components = customAttribute.GetObjectsLogic(sceneMono, isArray ? field.FieldType.GetElementType() : field.FieldType);
+                        object[] components = customAttribute.GetObjectsLogic(sceneMono, isArray ? field.FieldType.GetElementType() : field.FieldType, field);
 
-                        bool failToSet;
+                        bool failToSet = false;
 
-                        if (isArray)
+                        if (customAttribute.failIfEmpty)
                         {
-                            failToSet = components.Length == 0;
-                        }
-                        else
-                        {
-                            failToSet = components.FirstOrDefault() == null;
+                            if (isArray)
+                            {
+                                failToSet = components.Length == 0;
+                            }
+                            else
+                            {
+                                failToSet = components.FirstOrDefault() == null;
+                            }
                         }
 
                         if (failToSet)
