@@ -166,7 +166,7 @@ Will run `Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to se
 ### FindInChildren
 `[FindInChildren("Search")]`
 
-Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translates into a Unity method as it runs `GetComponent` after using `transform.Find`.
+Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method as it runs `GetComponent` after using `transform.Find`.
 
 **NOTE:** `FindInChildren` does not currently support arrays.
 
@@ -175,9 +175,20 @@ Will run `transform.Find("Search").GetComponent(<Field Type>)` on it's MonoBehav
 [SerializeField, Find("My Renderer")] private Renderer myRenderer;
 ```
 
+### DistinctNotNull
+`[DistinctNotNull]`
+
+Will run `values = values.Distinct().Where(x => !x.Equals(null)).ToArray()` on the field with the attribute.
+
+#### Example
+```cs
+[SerializeField, DistinctNotNull] private Renderer[] myRenderers;
+```
+
+
 ## Miscellaneous Editor Methods
 ### FindObjectOfTypeIncludeDisabled
-These methods are to be used in editor scripting only. These were implemented because as of Unity 2019.4.31f1 (Current VRChat version) Unitys' FindObjectOfType method does not include disabled GameObjects.
+These methods were used in editor scripting only. These were implemented because 2019.4.31f1 Unity's `FindObjectOfType` method did not include disabled GameObjects.
 
 - `UnityEditorExtensions.FindObjectOfTypeIncludeDisabled<T>()`
 - `UnityEditorExtensions.FindObjectOfTypeIncludeDisabled(Type type)`
