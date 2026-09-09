@@ -19,13 +19,13 @@ namespace VRRefAssist
     {
         public readonly bool dontOverride;
         public readonly bool suppressErrors;
-        public readonly bool failIfNull;
+        public readonly bool failIfEmpty;
         
-        protected AutosetAttribute(bool dontOverride = false, bool suppressErrors = false, bool failIfNull = true)
+        protected AutosetAttribute(bool dontOverride = false, bool suppressErrors = false, bool failIfEmpty = true)
         {
             this.dontOverride = dontOverride;
             this.suppressErrors = suppressErrors;
-            this.failIfNull = failIfNull;
+            this.failIfEmpty = failIfEmpty;
         }
         public abstract object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field);
     }
