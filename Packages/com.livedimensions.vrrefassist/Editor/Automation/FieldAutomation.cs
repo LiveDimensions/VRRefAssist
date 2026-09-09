@@ -115,7 +115,7 @@ namespace VRRefAssist.Editor.Automation
 
                         bool failToSet;
 
-                        if (customAttribute.failIfNull)
+                        if (customAttribute.failIfEmpty)
                         {
                             if (isArray)
                             {
