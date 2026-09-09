@@ -103,7 +103,7 @@ namespace VRRefAssist
     }
 
     /// <summary>
-    /// This is will run transform.parent.GetComponent(type) on the object this is attached to and set the field to the result.
+    /// This will run transform.parent.GetComponent(type) on the object this is attached to and set the field to the result.
     /// </summary>
     public class GetComponentInDirectParent : AutosetAttribute
     {
@@ -309,7 +309,7 @@ namespace VRRefAssist
 
     public class DistinctNotNull : AutosetAttribute
     {
-        public DistinctNotNull() : base(false, true, false)
+        public DistinctNotNull() : base(failIfEmpty: false)
         {
         }
         
