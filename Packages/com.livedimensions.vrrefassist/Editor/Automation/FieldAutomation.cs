@@ -113,7 +113,7 @@ namespace VRRefAssist.Editor.Automation
 
                         object[] components = customAttribute.GetObjectsLogic(sceneMono, isArray ? field.FieldType.GetElementType() : field.FieldType, field);
 
-                        bool failToSet;
+                        bool failToSet = false;
 
                         if (customAttribute.failIfEmpty)
                         {
