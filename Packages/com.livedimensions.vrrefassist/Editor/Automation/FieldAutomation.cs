@@ -1,9 +1,13 @@
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
+
 using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
@@ -108,22 +112,41 @@ namespace VRRefAssist.Editor.Automation
                         {
                             continue;
                         }
+                        
+                        Type elementType;
+                        CollectionType collectionType;
+                        
+                        if (field.FieldType.IsArray)
+                        {
+                            collectionType = CollectionType.Array;
+                            elementType = field.FieldType.GetElementType();
+                        }
+                        else if (field.FieldType.IsIList(out Type listElementType))
+                        {
+                            collectionType = CollectionType.List;
+                            elementType = listElementType;
+                        }
+                        else
+                        {
+                            collectionType = CollectionType.Single;
+                            elementType = field.FieldType;
+                        }
 
-                        bool isArray = field.FieldType.IsArray;
-
-                        object[] components = customAttribute.GetObjectsLogic(sceneMono, isArray ? field.FieldType.GetElementType() : field.FieldType, field);
-
+                        if (elementType == null) throw new NullReferenceException("Type cannot be null");
+                        
+                        object[] values = customAttribute.GetObjectsLogic(sceneMono, elementType, field);
+                        
                         bool failToSet = false;
 
                         if (customAttribute.failIfEmpty)
                         {
-                            if (isArray)
+                            if (collectionType == CollectionType.Single)
                             {
-                                failToSet = components.Length == 0;
+                                failToSet = values.FirstOrDefault() == null;
                             }
                             else
                             {
-                                failToSet = components.FirstOrDefault() == null;
+                                failToSet = values.Length == 0;
                             }
                         }
 
@@ -152,19 +175,28 @@ namespace VRRefAssist.Editor.Automation
                         }
 
                         object obj;
-                        if (isArray)
+                        switch (collectionType)
                         {
-                            var elementType = field.FieldType.GetElementType();
-
-                            var actualValues = Array.CreateInstance(elementType, components.Length);
-
-                            Array.Copy(components, actualValues, components.Length);
-
-                            obj = actualValues;
-                        }
-                        else
-                        {
-                            obj = components.FirstOrDefault();
+                            case CollectionType.Single:
+                                obj = values.FirstOrDefault();
+                                break;
+                            
+                            case CollectionType.Array:
+                                var actualValues = Array.CreateInstance(elementType, values.Length);
+                                Array.Copy(values, actualValues, values.Length);
+                                obj = actualValues;
+                                break;
+                            
+                            case CollectionType.List:
+                                List<object> list = values.ToList();
+                                Type genericListType = typeof(List<>);
+                                Type constructedListType = genericListType.MakeGenericType(elementType);
+                                var resultList = (IList)Activator.CreateInstance(constructedListType);
+                                list.ForEach(x => resultList.Add(x));
+                                obj = resultList;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
 
                         field.SetValue(sceneMono, obj);
@@ -198,5 +230,31 @@ namespace VRRefAssist.Editor.Automation
         }
 
         public static bool IsSerialized(this FieldInfo field) => !(field.GetCustomAttribute<NonSerializedAttribute>() != null || field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null);
+        
+        private enum CollectionType
+        {
+            Single,
+            Array,
+            List
+        }
+        
+        /// <summary>
+        /// Test if a type implements IList of T, and if so, determine T.
+        /// </summary>
+        private static bool IsIList(this Type type, out Type listType)
+        {
+            var interfaceTest = new Func<Type, Type>(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>) ? i.GetGenericArguments().Single() : null);
+
+            listType = interfaceTest(type);
+            if (listType != null) return true;
+
+            foreach (Type i in type.GetInterfaces())
+            {
+                listType = interfaceTest(i);
+                if (listType != null) return true;
+            }
+
+            return false;
+        }
     }
 }
