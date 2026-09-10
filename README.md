@@ -8,6 +8,7 @@ A set of custom attributes for Unity to automate usually time consuming referenc
 - Auto-set usually tedious references on MonoBehaviours
 - Run code any time a build is requested
 - All from within editor mode, no runtime code required or executed!
+- Scripting define symbol `VR_REF_ASSIST`
 
 ## How to install
 ### Unity Package Manager
