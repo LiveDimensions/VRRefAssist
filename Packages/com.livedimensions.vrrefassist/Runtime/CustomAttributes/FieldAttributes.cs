@@ -33,7 +33,7 @@ namespace VRRefAssist
     }
     
     /// <summary>
-    /// This will run GetComponent(type) on the object this is attached to and set the field to the result.
+    /// This will run GetComponents(type) on the object this Behaviour is attached to and set the field to the result. If the field is not an array it will use the first value.
     /// </summary>
     public class GetComponent : AutosetAttribute
     {
@@ -57,7 +57,7 @@ namespace VRRefAssist
     }
 
     /// <summary>
-    /// This will run GetComponentInChildren(type) on the object this is attached to and set the field to the result.
+    /// This will run GetComponentsInChildren(type) on the object this Behaviour is attached to and set the field to the result. If the field is not an array it will use the first value.
     /// </summary>
     public class GetComponentInChildren : AutosetAttribute
     {
@@ -79,9 +79,65 @@ namespace VRRefAssist
         {
         }
     }
+    
+    /// <summary>
+    /// This will run GetComponentsInChildren(type) on the children of the object this Behaviour is attached to and set the field to the result. If the field is not an array it will use the first value.
+    /// </summary>
+    public class GetComponentOnlyInChildren : AutosetAttribute
+    {
+        /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public GetComponentOnlyInChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
+        {
+            Transform t = monoBehaviour.transform;
+            var result = new List<Component>();
+            for (int i = 0; i < t.childCount; i++)
+                result.AddRange(t.GetChild(i).GetComponentsInChildren(type, true));
+            return result.ToArray();
+        }
+    }
+
+    public class GetComponentsOnlyInChildren : GetComponentOnlyInChildren
+    {
+        public GetComponentsOnlyInChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+    }
+    
+    /// <summary>
+    /// This will run GetComponents(type) on the direct children of the object this Behaviour is attached to and set the field to the result. If the field is not an array it will use the first value.
+    /// </summary>
+    public class GetComponentInDirectChildren : AutosetAttribute
+    {
+        /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
+        /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
+        public GetComponentInDirectChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
+        {
+            Transform t = monoBehaviour.transform;
+            var result = new List<Component>();
+            for (int i = 0; i < t.childCount; i++)
+                result.AddRange(t.GetChild(i).GetComponents(type));
+            return result.ToArray();
+        }
+    }
+
+    public class GetComponentsInDirectChildren : GetComponentInDirectChildren
+    {
+        public GetComponentsInDirectChildren(bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        {
+        }
+    }
 
     /// <summary>
-    /// This will run GetComponentInParent(type) on the object this is attached to and set the field to the result.
+    /// This will run GetComponentsInParent(type) on the object this Behaviour is attached to and set the field to the result. If the field is not an array it will use the first value.
     /// </summary>
     public class GetComponentInParent : AutosetAttribute
     {
@@ -105,7 +161,7 @@ namespace VRRefAssist
     }
 
     /// <summary>
-    /// This will run transform.parent.GetComponent(type) on the object this is attached to and set the field to the result.
+    /// This will run transform.parent.GetComponents(type) on the object this Behaviour is attached to and set the field to the result. If the field is not an array it will use the first value.
     /// </summary>
     public class GetComponentInDirectParent : AutosetAttribute
     {

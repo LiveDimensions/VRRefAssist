@@ -116,10 +116,28 @@ Will run `GetComponentInParent(<Field Type>)` on its MonoBehaviour to set that r
 ### GetComponentInDirectParent
 `[GetComponentInDirectParent]`
 
-Will run `transform.parent.GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method, but it is still useful in some cases.
+Will run `transform.parent.GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the attributes that does not directly translate to a Unity method, but it is still useful in some cases.
 #### Example
 ```cs
 [SerializeField, GetComponentInDirectParent] private Renderer myRenderer;
+```
+
+### GetComponentOnlyInChildren
+`[GetComponentOnlyInChildren]`
+
+This will run GetComponentInChildren(<Field Type>) on the children of the object this Behaviour is attached to. This is one of the attributes that does not directly translate to a Unity method, but it is still useful in some cases.
+#### Example
+```cs
+[SerializeField, GetComponentOnlyInChildren] private Renderer myRenderer;
+```
+
+### GetComponentInDirectChildren
+`[GetComponentInDirectChildren]`
+
+This will run GetComponent(<Field Type>) on the direct children of the object this Behaviour is attached to and set the field to the result. This is one of the attributes that does not directly translate to a Unity method, but it is still useful in some cases.
+#### Example
+```cs
+[SerializeField, GetComponentInDirectChildren] private Renderer myRenderer;
 ```
 
 ### FindObjectOfType
