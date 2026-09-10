@@ -25,7 +25,7 @@ namespace VRRefAssist.AttributeUtils
         }
 
         /// <summary>
-        /// Test if a type implements IList of T, and if so, determine T.
+        /// Test if a type implements IList of T.
         /// </summary>
         private static bool IsIList(this Type type)
         {
@@ -33,14 +33,12 @@ namespace VRRefAssist.AttributeUtils
                 i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>)
                     ? i.GetGenericArguments().Single()
                     : null);
-
-            Type listType = interfaceTest(type);
-            if (listType != null) return true;
+            
+            if (interfaceTest(type) != null) return true;
 
             foreach (Type i in type.GetInterfaces())
             {
-                listType = interfaceTest(i);
-                if (listType != null) return true;
+                if (interfaceTest(i) != null) return true;
             }
 
             return false;
