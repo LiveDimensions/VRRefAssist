@@ -1,9 +1,13 @@
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
+
 using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
@@ -108,22 +112,20 @@ namespace VRRefAssist.Editor.Automation
                         {
                             continue;
                         }
-
-                        bool isArray = field.FieldType.IsArray;
-
-                        object[] components = customAttribute.GetObjectsLogic(sceneMono, isArray ? field.FieldType.GetElementType() : field.FieldType, field);
-
+                        
+                        object[] values = customAttribute.GetObjectsLogic(sceneMono, field.GetFieldType(), field);
+                        
                         bool failToSet = false;
 
                         if (customAttribute.failIfEmpty)
                         {
-                            if (isArray)
+                            if (field.IsCollection())
                             {
-                                failToSet = components.Length == 0;
+                                failToSet = values.Length == 0;
                             }
                             else
                             {
-                                failToSet = components.FirstOrDefault() == null;
+                                failToSet = values.FirstOrDefault() == null;
                             }
                         }
 
@@ -150,24 +152,8 @@ namespace VRRefAssist.Editor.Automation
 
                             continue;
                         }
-
-                        object obj;
-                        if (isArray)
-                        {
-                            var elementType = field.FieldType.GetElementType();
-
-                            var actualValues = Array.CreateInstance(elementType, components.Length);
-
-                            Array.Copy(components, actualValues, components.Length);
-
-                            obj = actualValues;
-                        }
-                        else
-                        {
-                            obj = components.FirstOrDefault();
-                        }
-
-                        field.SetValue(sceneMono, obj);
+                        
+                        field.SetValues(sceneMono, values);
 
                         Type customAttributeType = customAttribute.GetType();
 
@@ -198,5 +184,74 @@ namespace VRRefAssist.Editor.Automation
         }
 
         public static bool IsSerialized(this FieldInfo field) => !(field.GetCustomAttribute<NonSerializedAttribute>() != null || field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null);
+        
+        private static void SetValues(this FieldInfo field, object obj, object[] values)
+        {
+            object value;
+            
+            if (field.FieldType.IsArray)
+            {
+                Type arrayElementType = field.FieldType.GetElementType();
+                // ReSharper disable once AssignNullToNotNullAttribute
+                var destinationArray = Array.CreateInstance(arrayElementType, values.Length);
+                Array.Copy(values, destinationArray, values.Length);
+                value = destinationArray;
+            }
+            else if (field.FieldType.IsIList(out Type listElementType))
+            {
+                List<object> list = values.ToList();
+                Type genericListType = typeof(List<>);
+                Type constructedListType = genericListType.MakeGenericType(listElementType);
+                var resultList = (IList)Activator.CreateInstance(constructedListType);
+                list.ForEach(x => resultList.Add(x));
+                value = resultList;
+            }
+            else
+            {
+                value = values.FirstOrDefault();
+            }
+
+            field.SetValue(obj, value);
+        }
+
+        private static Type GetFieldType(this FieldInfo field)
+        {
+            if (field.FieldType.IsArray)
+            {
+                return field.FieldType.GetElementType();
+            }
+
+            if (field.FieldType.IsIList(out Type listElementType))
+            {
+                return listElementType;
+            }
+            
+            return field.FieldType;
+        }
+        
+        private static bool IsCollection(this FieldInfo field)
+        {
+            if (field.FieldType.IsArray) return true;
+            return field.FieldType.IsIList(out Type _);
+        }
+        
+        /// <summary>
+        /// Test if a type implements IList of T, and if so, determine T.
+        /// </summary>
+        private static bool IsIList(this Type type, out Type listType)
+        {
+            var interfaceTest = new Func<Type, Type>(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>) ? i.GetGenericArguments().Single() : null);
+
+            listType = interfaceTest(type);
+            if (listType != null) return true;
+
+            foreach (Type i in type.GetInterfaces())
+            {
+                listType = interfaceTest(i);
+                if (listType != null) return true;
+            }
+
+            return false;
+        }
     }
 }

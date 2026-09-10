@@ -1,8 +1,7 @@
 {
     "name": "LiveDimensions.VRRefAssist.Runtime",
-    "references": [
-        "GUID:99835874ee819da44948776e0df4ff1d"
-    ],
+    "rootNamespace": "",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

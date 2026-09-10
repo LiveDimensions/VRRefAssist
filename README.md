@@ -8,6 +8,7 @@ A set of custom attributes for Unity to automate usually time consuming referenc
 - Auto-set usually tedious references on MonoBehaviours
 - Run code any time a build is requested
 - All from within editor mode, no runtime code required or executed!
+- Scripting define symbol `VR_REF_ASSIST`
 
 ## How to install
 ### Unity Package Manager
@@ -116,10 +117,28 @@ Will run `GetComponentInParent(<Field Type>)` on its MonoBehaviour to set that r
 ### GetComponentInDirectParent
 `[GetComponentInDirectParent]`
 
-Will run `transform.parent.GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the few attributes that does not directly translate into a Unity method, but it is still useful in some cases.
+Will run `transform.parent.GetComponent(<Field Type>)` on its MonoBehaviour to set that reference. This is one of the attributes that does not directly translate to a Unity method, but it is still useful in some cases.
 #### Example
 ```cs
 [SerializeField, GetComponentInDirectParent] private Renderer myRenderer;
+```
+
+### GetComponentOnlyInChildren
+`[GetComponentOnlyInChildren]`
+
+This will run GetComponentInChildren(<Field Type>) on the children of the object this Behaviour is attached to. This is one of the attributes that does not directly translate to a Unity method, but it is still useful in some cases.
+#### Example
+```cs
+[SerializeField, GetComponentOnlyInChildren] private Renderer myRenderer;
+```
+
+### GetComponentInDirectChildren
+`[GetComponentInDirectChildren]`
+
+This will run GetComponent(<Field Type>) on the direct children of the object this Behaviour is attached to and set the field to the result. This is one of the attributes that does not directly translate to a Unity method, but it is still useful in some cases.
+#### Example
+```cs
+[SerializeField, GetComponentInDirectChildren] private Renderer myRenderer;
 ```
 
 ### FindObjectOfType
@@ -178,11 +197,21 @@ Will run `transform.Find("Search").GetComponent(<Field Type>)` on its MonoBehavi
 ### DistinctNotNull
 `[DistinctNotNull]`
 
-Will run `values = values.Distinct().Where(x => !x.Equals(null)).ToArray()` on the field with the attribute.
+Will run the LINQ expression values.Distinct().Where(x => !x.Equals(null)) on the field with this attribute.
 
 #### Example
 ```cs
 [SerializeField, DistinctNotNull] private Renderer[] myRenderers;
+```
+
+### WhereNotNull
+`[WhereNotNull]`
+
+Will run the LINQ expression values.Where(x => !x.Equals(null)) on the field with this attribute.
+
+#### Example
+```cs
+[SerializeField, WhereNotNull] private Renderer[] myRenderers;
 ```
 
 
