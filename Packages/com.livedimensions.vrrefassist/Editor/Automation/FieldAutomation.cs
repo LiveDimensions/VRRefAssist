@@ -113,40 +113,19 @@ namespace VRRefAssist.Editor.Automation
                             continue;
                         }
                         
-                        Type elementType;
-                        CollectionType collectionType;
-                        
-                        if (field.FieldType.IsArray)
-                        {
-                            collectionType = CollectionType.Array;
-                            elementType = field.FieldType.GetElementType();
-                        }
-                        else if (field.FieldType.IsIList(out Type listElementType))
-                        {
-                            collectionType = CollectionType.List;
-                            elementType = listElementType;
-                        }
-                        else
-                        {
-                            collectionType = CollectionType.Single;
-                            elementType = field.FieldType;
-                        }
-
-                        if (elementType == null) throw new NullReferenceException("Type cannot be null");
-                        
-                        object[] values = customAttribute.GetObjectsLogic(sceneMono, elementType, field);
+                        object[] values = customAttribute.GetObjectsLogic(sceneMono, field.GetFieldType(), field);
                         
                         bool failToSet = false;
 
                         if (customAttribute.failIfEmpty)
                         {
-                            if (collectionType == CollectionType.Single)
+                            if (field.IsCollection())
                             {
-                                failToSet = values.FirstOrDefault() == null;
+                                failToSet = values.Length == 0;
                             }
                             else
                             {
-                                failToSet = values.Length == 0;
+                                failToSet = values.FirstOrDefault() == null;
                             }
                         }
 
@@ -173,33 +152,8 @@ namespace VRRefAssist.Editor.Automation
 
                             continue;
                         }
-
-                        object obj;
-                        switch (collectionType)
-                        {
-                            case CollectionType.Single:
-                                obj = values.FirstOrDefault();
-                                break;
-                            
-                            case CollectionType.Array:
-                                var actualValues = Array.CreateInstance(elementType, values.Length);
-                                Array.Copy(values, actualValues, values.Length);
-                                obj = actualValues;
-                                break;
-                            
-                            case CollectionType.List:
-                                List<object> list = values.ToList();
-                                Type genericListType = typeof(List<>);
-                                Type constructedListType = genericListType.MakeGenericType(elementType);
-                                var resultList = (IList)Activator.CreateInstance(constructedListType);
-                                list.ForEach(x => resultList.Add(x));
-                                obj = resultList;
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
-
-                        field.SetValue(sceneMono, obj);
+                        
+                        field.SetValues(sceneMono, values);
 
                         Type customAttributeType = customAttribute.GetType();
 
@@ -231,11 +185,54 @@ namespace VRRefAssist.Editor.Automation
 
         public static bool IsSerialized(this FieldInfo field) => !(field.GetCustomAttribute<NonSerializedAttribute>() != null || field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null);
         
-        private enum CollectionType
+        private static void SetValues(this FieldInfo field, object obj, object[] values)
         {
-            Single,
-            Array,
-            List
+            object value;
+            
+            if (field.FieldType.IsArray)
+            {
+                Type arrayElementType = field.FieldType.GetElementType();
+                // ReSharper disable once AssignNullToNotNullAttribute
+                var destinationArray = Array.CreateInstance(arrayElementType, values.Length);
+                Array.Copy(values, destinationArray, values.Length);
+                value = destinationArray;
+            }
+            else if (field.FieldType.IsIList(out Type listElementType))
+            {
+                List<object> list = values.ToList();
+                Type genericListType = typeof(List<>);
+                Type constructedListType = genericListType.MakeGenericType(listElementType);
+                var resultList = (IList)Activator.CreateInstance(constructedListType);
+                list.ForEach(x => resultList.Add(x));
+                value = resultList;
+            }
+            else
+            {
+                value = values.FirstOrDefault();
+            }
+
+            field.SetValue(obj, value);
+        }
+
+        private static Type GetFieldType(this FieldInfo field)
+        {
+            if (field.FieldType.IsArray)
+            {
+                return field.FieldType.GetElementType();
+            }
+
+            if (field.FieldType.IsIList(out Type listElementType))
+            {
+                return listElementType;
+            }
+            
+            return field.FieldType;
+        }
+        
+        private static bool IsCollection(this FieldInfo field)
+        {
+            if (field.FieldType.IsArray) return true;
+            return field.FieldType.IsIList(out Type _);
         }
         
         /// <summary>
