@@ -185,6 +185,16 @@ Will run the LINQ expression values.Distinct().Where(x => !x.Equals(null)) on th
 [SerializeField, DistinctNotNull] private Renderer[] myRenderers;
 ```
 
+### WhereNotNull
+`[WhereNotNull]`
+
+Will run the LINQ expression values.Where(x => !x.Equals(null)) on the field with this attribute.
+
+#### Example
+```cs
+[SerializeField, WhereNotNull] private Renderer[] myRenderers;
+```
+
 
 ## Miscellaneous Editor Methods
 ### FindObjectOfTypeIncludeDisabled

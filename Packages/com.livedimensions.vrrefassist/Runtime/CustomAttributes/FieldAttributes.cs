@@ -325,4 +325,21 @@ namespace VRRefAssist
             return values.Distinct().Where(x => !x.Equals(null)).ToArray();
         }
     }
+    
+    /// <summary>
+    /// Will run the LINQ expression values.Where(x => !x.Equals(null)) on the field with this attribute.
+    /// </summary>
+    public class WhereNotNull : AutosetAttribute
+    {
+        public WhereNotNull() : base(failIfEmpty: false)
+        {
+        }
+        
+        public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
+        {
+            object[] values = field.GetValues(monoBehaviour);
+            if (values == null) return Array.Empty<object>();
+            return values.Where(x => !x.Equals(null)).ToArray();
+        }
+    }
 }
