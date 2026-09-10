@@ -178,7 +178,7 @@ Will run `transform.Find("Search").GetComponent(<Field Type>)` on its MonoBehavi
 ### DistinctNotNull
 `[DistinctNotNull]`
 
-Will run `values = values.Distinct().Where(x => !x.Equals(null)).ToArray()` on the field with the attribute.
+Will run the LINQ expression values.Distinct().Where(x => !x.Equals(null)) on the field with this attribute.
 
 #### Example
 ```cs

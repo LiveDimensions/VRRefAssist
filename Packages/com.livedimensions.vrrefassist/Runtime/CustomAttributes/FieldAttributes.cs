@@ -309,6 +309,9 @@ namespace VRRefAssist
         }
     }
 
+    /// <summary>
+    /// Will run the LINQ expression values.Distinct().Where(x => !x.Equals(null)) on the field with this attribute.
+    /// </summary>
     public class DistinctNotNull : AutosetAttribute
     {
         public DistinctNotNull() : base(failIfEmpty: false)
