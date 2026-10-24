@@ -24,8 +24,10 @@ namespace VRRefAssist.Editor.Extensions
             }
         }
         
-#if UNITY_2020_1_OR_NEWER
-        [Obsolete("Use Object.FindObjectsOfType<T>(bool includeInactive) instead")]
+#if UNITY_2022_3_OR_NEWER
+        [Obsolete("Use Object.FindObjectsByType<T>(FindObjectsInactive findObjectsInactive, FindObjectsSortMode sortMode) instead.")]
+#elif UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectsOfType<T>(bool includeInactive) instead.")]
 #endif
         public static T[] FindObjectsOfTypeIncludeDisabled<T>() where T : Object
         {
@@ -47,8 +49,10 @@ namespace VRRefAssist.Editor.Extensions
             return objs.ToArray();
         }
 
-#if UNITY_2020_1_OR_NEWER
-        [Obsolete("Use Object.FindObjectsOfType(Type type,bool includeInactive) instead")]
+#if UNITY_2022_3_OR_NEWER
+        [Obsolete("Use Object.FindObjectsByType(Type type, FindObjectsInactive findObjectsInactive, FindObjectsSortMode sortMode) instead.")]
+#elif UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectsOfType(Type type, bool includeInactive) instead.")]
 #endif
         public static Component[] FindObjectsOfTypeIncludeDisabled(Type type)
         {
@@ -66,15 +70,17 @@ namespace VRRefAssist.Editor.Extensions
             return objs.ToArray();
         }
 
-#if UNITY_2020_1_OR_NEWER
-        [Obsolete("Use Object.FindObjectOfType<T>(bool includeInactive) instead")]
+#if UNITY_2022_3_OR_NEWER
+        [Obsolete("Use Object.FindFirstObjectByType<T>(FindObjectsInactive findObjectsInactive) instead. Prefer FindAnyObjectByType where possible.")]
+#elif UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectOfType<T>(bool includeInactive) instead.")]
 #endif
         public static T FindObjectOfTypeIncludeDisabled<T>() where T : Object
         {
-            //If T is a GameObject, get all Transforms and cast them to GameObjects
+            //If T is a GameObject, find by Transform and cast to GameObject.
             if (typeof(T) == typeof(GameObject))
             {
-                return FindObjectOfTypeIncludeDisabled<Transform>().gameObject as T;
+                return FindObjectOfTypeIncludeDisabled<Transform>()?.gameObject as T;
             }
             
             GameObject[] rootGos = SceneManager.GetActiveScene().GetRootGameObjects();
@@ -91,8 +97,10 @@ namespace VRRefAssist.Editor.Extensions
             return null;
         }
 
-#if UNITY_2020_1_OR_NEWER
-        [Obsolete("Use Object.FindObjectOfType(Type type, bool includeInactive) instead")]
+#if UNITY_2022_3_OR_NEWER
+        [Obsolete("Use Object.FindFirstObjectByType(Type type, FindObjectsInactive findObjectsInactive) instead. Prefer FindAnyObjectByType where possible.")]
+#elif UNITY_2020_1_OR_NEWER
+        [Obsolete("Use Object.FindObjectOfType(Type type, bool includeInactive) instead.")]
 #endif
         public static Component FindObjectOfTypeIncludeDisabled(Type type)
         {

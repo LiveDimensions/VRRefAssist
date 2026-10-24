@@ -94,11 +94,15 @@ namespace VRRefAssist.Editor.Automation
                 count++;
 
                 //When getting the monos, check for the ones that specifically are of the type, otherwise we will repeat classes that are inherited.
-#if UNITY_2020_1_OR_NEWER
-                List<MonoBehaviour> monos = UnityEngine.Object.FindObjectsOfType(typeToFind, true).Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();          
+#if UNITY_2022_3_OR_NEWER
+                // FindObjectsOfType is obsolete in newer versions (2023.1+) and is superseded by FindObjectsByType
+                var found = UnityEngine.Object.FindObjectsByType(typeToFind, FindObjectsInactive.Include, FindObjectsSortMode.None);
+#elif UNITY_2020_1_OR_NEWER
+                var found = UnityEngine.Object.FindObjectsOfType(typeToFind, true);
 #else
-                List<MonoBehaviour> monos = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind).Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();
+                var found = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(typeToFind);
 #endif
+                List<MonoBehaviour> monos = found.Where(x => x.GetType() == typeToFind).Select(x => (MonoBehaviour)x).ToList();
 
                 FieldInfo[] fields = cachedValuePair.Value.ToArray();
 

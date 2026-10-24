@@ -6,7 +6,6 @@ using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using VRRefAssist.Editor.Exceptions;
-using VRRefAssist.Editor.Extensions;
 
 namespace VRRefAssist.Editor.Automation
 {
@@ -92,11 +91,15 @@ namespace VRRefAssist.Editor.Automation
 
             foreach (var monoType in monoTypeInstances.Keys)
             {
-#if UNITY_2020_1_OR_NEWER
-                MonoBehaviour[] monoInstances = UnityEngine.Object.FindObjectsOfType(monoType, true).Where(x => x.GetType() == monoType).Select(x => (MonoBehaviour)x).ToArray();
+#if UNITY_2022_3_OR_NEWER
+                //FindObjectsOfType is obsolete in newer versions (2023.1+) and is superseded by FindObjectsByType.
+                var found = UnityEngine.Object.FindObjectsByType(monoType, FindObjectsInactive.Include, FindObjectsSortMode.None);
+#elif UNITY_2020_1_OR_NEWER
+                var found = UnityEngine.Object.FindObjectsOfType(monoType, true);
 #else
-                MonoBehaviour[] monoInstances = UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(monoType).Where(x => x.GetType() == monoType).Select(x => (MonoBehaviour)x).ToArray();
+                var found = Extensions.UnityEditorExtensions.FindObjectsOfTypeIncludeDisabled(monoType);
 #endif
+                MonoBehaviour[] monoInstances = found.Where(x => x.GetType() == monoType).Select(x => (MonoBehaviour)x).ToArray();
 
                 monoTypeInstances[monoType].Clear();
                 monoTypeInstances[monoType].AddRange(monoInstances);
