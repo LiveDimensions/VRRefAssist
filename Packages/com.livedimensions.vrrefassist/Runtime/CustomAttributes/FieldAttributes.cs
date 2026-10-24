@@ -186,26 +186,36 @@ namespace VRRefAssist
 
     /// <summary>
     /// This will run FindObjectsOfType(type) and set the field to the result, if the field is not an array it will use the first value.
+    /// In Unity 2022.3 or newer it runs FindObjectsByType instead, as the older FindObjectsOfType is obsolete.
     /// </summary>
     public class FindObjectOfType : AutosetAttribute
     {
         public readonly bool includeDisabled;
+        public readonly bool sort;
 
         /// <param name="includeDisabled">Include components in disabled GameObjects?</param>
         /// <param name="dontOverride">If the field value is not null, it won't be set again. You can use this to override references</param>
         /// <param name="suppressErrors">If the reference fails to be set, the console error will be suppressed.</param>
-        public FindObjectOfType(bool includeDisabled = true, bool dontOverride = false, bool suppressErrors = false) : base(dontOverride, suppressErrors)
+        /// <param name="sort">Unity 2022.3 or newer. If the found objects will be sorted by the InstanceID or returned in the order they were found. Sorting is considerably slower so only use it when you have to.</param>
+        public FindObjectOfType(bool includeDisabled = true, bool dontOverride = false, bool suppressErrors = false, bool sort = true) : base(dontOverride, suppressErrors)
         {
             this.includeDisabled = includeDisabled;
+            this.sort = sort;
         }
 
         public override object[] GetObjectsLogic(MonoBehaviour monoBehaviour, Type type, FieldInfo field)
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2022_3_OR_NEWER
+            // FindObjectsOfType is obsolete in newer versions (2023.1+) and is superseded by FindObjectsByType
+            return UnityEngine.Object.FindObjectsByType(
+                type,
+                includeDisabled ? FindObjectsInactive.Include : FindObjectsInactive.Exclude,
+                sort ? FindObjectsSortMode.InstanceID : FindObjectsSortMode.None);
+#elif UNITY_2020_1_OR_NEWER
             return UnityEngine.Object.FindObjectsOfType(type, includeDisabled);
-            #else
+#else
             return includeDisabled ? FindObjectsOfTypeIncludeDisabled(type) : UnityEngine.Object.FindObjectsOfType(type);
-            #endif
+#endif
         }
         
         private static Component[] FindObjectsOfTypeIncludeDisabled(Type type)
@@ -230,7 +240,7 @@ namespace VRRefAssist
     /// </summary>
     public class FindObjectsOfType : FindObjectOfType
     {
-        public FindObjectsOfType(bool includeDisabled = true, bool dontOverride = false, bool suppressErrors = false) : base(includeDisabled, dontOverride, suppressErrors)
+        public FindObjectsOfType(bool includeDisabled = true, bool dontOverride = false, bool suppressErrors = false, bool sort = true) : base(includeDisabled, dontOverride, suppressErrors, sort)
         {
         }
     }
@@ -292,7 +302,7 @@ namespace VRRefAssist
     public class FindObjectWithTag : AutosetAttribute
     {
         public readonly string tag;
-        public bool includeDisabledGameObjects;
+        public readonly bool includeDisabledGameObjects;
 
         /// <param name="tag">The tag to search for</param>
         /// <param name="includeDisabledGameObjects">Include disabled GameObjects?</param>
@@ -310,8 +320,14 @@ namespace VRRefAssist
             
             if (includeDisabledGameObjects)
             {
+#if UNITY_2022_3_OR_NEWER
+                // FindObjectsOfType is obsolete in newer versions (2023.1+) and is superseded by FindObjectsByType
+                results = UnityEngine.Object.FindObjectsByType<GameObject>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None
+                    ).Where(go => go.CompareTag(tag)).ToList();
+#elif UNITY_2020_1_OR_NEWER
                 //Unity 2020 and newer has a method to find objects of type including disabled ones, and then we can filter by tag.
-#if UNITY_2020_1_OR_NEWER
                 results = UnityEngine.Object.FindObjectsOfType<GameObject>(true).Where(go => go.CompareTag(tag)).ToList();
 #else
                 //2019 and older doesn't, so we use a manual method.
