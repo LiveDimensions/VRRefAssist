@@ -53,7 +53,7 @@ namespace VRRefAssist.Editor.Automation
 
         private static readonly Dictionary<Type, int> FieldAutomationTypeResults = new Dictionary<Type, int>();
 
-        private const BindingFlags FieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private const BindingFlags FieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
         private static bool showPopupWhenFieldAutomationFailed;
 
