@@ -182,7 +182,7 @@ namespace VRRefAssist.Editor.Automation
                 {
                     if (!monoTypeInstances.TryGetValue(type, out var instances))
                     {
-                        return;
+                        continue;
                     }
 
                     foreach (var instance in instances)
