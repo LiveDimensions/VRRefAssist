@@ -16,6 +16,9 @@ namespace VRRefAssist.Editor.Automation
         {
             if (requestedBuildType == VRCSDKRequestedBuildType.Avatar) return true;
 
+            //Some tools (e.g. VRCFury) invoke build requested callbacks after play mode has started, automation already ran on ExitingEditMode
+            if (EditorApplication.isPlaying) return true;
+
             return BuildOrPlayModeCallback.ExecuteAutomation(true);
         }
     }
@@ -44,10 +47,9 @@ namespace VRRefAssist.Editor.Automation
 
         private static void OnPlayModeChanged(PlayModeStateChange state)
         {
-            VRRADebugger.Log($"Play mode state changed: {state}");
             if (state != PlayModeStateChange.ExitingEditMode) return;
 
-            if(!ExecuteAutomation(true))
+            if(!ExecuteAutomation(false))
             {
                 VRRADebugger.LogError("Automation failed, stopping play mode!");
                 EditorApplication.isPlaying = false;
@@ -56,19 +58,26 @@ namespace VRRefAssist.Editor.Automation
 
         public static bool ExecuteAutomation(bool buildRequested)
         {
-            //
-            //BUILD REQUESTED
-            //
-            if (buildRequested)
+            //Builds always run all automation, entering play mode respects the user's settings
+            VRRefAssistSettings settings = VRRefAssistSettings.GetOrCreateSettings();
+            bool executeRunOnBuildMethods = buildRequested || settings.executeRunOnBuildMethodsWhenEnteringPlayMode;
+            bool executeFieldAutomation = buildRequested || settings.executeFieldAutomationWhenEnteringPlayMode;
+
+            bool cancelBuild;
+
+            if (executeRunOnBuildMethods)
             {
                 RunOnBuildMethods.CacheMonoInstances();
 
-                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation, out bool cancelBuild);
+                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation, out cancelBuild);
                 if (cancelBuild)
                 {
                     return false;
                 }
+            }
 
+            if (executeFieldAutomation)
+            {
                 FieldAutomation.ExecuteAllFieldAutomation(out cancelBuild);
                 if (cancelBuild)
                 {
@@ -80,40 +89,18 @@ namespace VRRefAssist.Editor.Automation
                 {
                     return false;
                 }
+            }
 
-
+            if (executeRunOnBuildMethods)
+            {
                 RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PostFieldAutomation, out cancelBuild);
                 if (cancelBuild)
                 {
                     return false;
                 }
-
-                return true;
             }
 
-            //
-            //ENTERING PLAY MODE
-            //
-            bool executeRunOnBuildMethodsWhenEnteringPlayMode = VRRefAssistSettings.GetOrCreateSettings().executeRunOnBuildMethodsWhenEnteringPlayMode;
-
-            if (executeRunOnBuildMethodsWhenEnteringPlayMode)
-            {
-                RunOnBuildMethods.CacheMonoInstances();
-                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PreFieldAutomation);
-            }
-
-            if (VRRefAssistSettings.GetOrCreateSettings().executeFieldAutomationWhenEnteringPlayMode)
-            {
-                FieldAutomation.ExecuteAllFieldAutomation();
-                SingletonAutomation.SetAllSingletonReferences();
-            }
-
-            if (executeRunOnBuildMethodsWhenEnteringPlayMode)
-            {
-                RunOnBuildAutomation.RunOnBuildMethodsWithExecuteOrderType(RunOnBuildAutomation.ExecuteOrderType.PostFieldAutomation);
-            }
-
-            return true; //There is no way of cancelling entering play mode
+            return true;
         }
 
         [MenuItem("VR RefAssist/Tools/Execute All Automation", priority = 100)]
